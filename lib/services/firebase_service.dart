@@ -60,15 +60,23 @@ class FirebaseService {
     await _firestore.collection('orders').doc(orderId).update(updateData);
   }
 
+  static Future<void> updateOrder(app_models.Order order) async {
+    await _firestore.collection('orders').doc(order.id).update(order.toMap());
+  }
+
   static Stream<List<app_models.Order>> getOrdersForCustomer(String customerId) {
     return _firestore
         .collection('orders')
         .where('customerId', isEqualTo: customerId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => app_models.Order.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map((snapshot) {
+          final orders = snapshot.docs
+              .map((doc) => app_models.Order.fromMap({...doc.data(), 'id': doc.id}))
+              .toList();
+          // Sort in memory instead of using orderBy to avoid index requirement
+          orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return orders;
+        });
   }
 
   static Stream<List<app_models.Order>> getPendingOrders() {

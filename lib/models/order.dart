@@ -37,6 +37,8 @@ class Order {
   final List<String> imageUrls;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final double price; // customer's price offer in RUB
+  final bool isPaid;
 
   Order({
     required this.id,
@@ -52,6 +54,8 @@ class Order {
     this.imageUrls = const [],
     required this.createdAt,
     this.updatedAt,
+    required this.price,
+    this.isPaid = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -69,6 +73,8 @@ class Order {
       'imageUrls': imageUrls,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+      'price': price,
+      'isPaid': isPaid,
     };
   }
 
@@ -92,6 +98,8 @@ class Order {
       updatedAt: map['updatedAt'] != null 
           ? (map['updatedAt'] as Timestamp).toDate()
           : null,
+      price: map['price']?.toDouble() ?? 0.0,
+      isPaid: map['isPaid'] ?? false,
     );
   }
 
@@ -109,6 +117,8 @@ class Order {
     List<String>? imageUrls,
     DateTime? createdAt,
     DateTime? updatedAt,
+    double? price,
+    bool? isPaid,
   }) {
     return Order(
       id: id ?? this.id,
@@ -124,6 +134,11 @@ class Order {
       imageUrls: imageUrls ?? this.imageUrls,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      price: price ?? this.price,
+      isPaid: isPaid ?? this.isPaid,
     );
   }
+
+  // Helper method to check if order is editable
+  bool get isEditable => status == OrderStatus.pending;
 }
