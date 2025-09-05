@@ -75,22 +75,30 @@ class FirebaseService {
     return _firestore
         .collection('orders')
         .where('status', isEqualTo: app_models.OrderStatus.pending.name)
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => app_models.Order.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map((snapshot) {
+          final orders = snapshot.docs
+              .map((doc) => app_models.Order.fromMap({...doc.data(), 'id': doc.id}))
+              .toList();
+          // Sort in memory instead of using orderBy
+          orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return orders;
+        });
   }
 
   static Stream<List<app_models.Order>> getOrdersForProvider(String providerId) {
     return _firestore
         .collection('orders')
         .where('providerId', isEqualTo: providerId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => app_models.Order.fromMap({...doc.data(), 'id': doc.id}))
-            .toList());
+        .map((snapshot) {
+          final orders = snapshot.docs
+              .map((doc) => app_models.Order.fromMap({...doc.data(), 'id': doc.id}))
+              .toList();
+          // Sort in memory instead of using orderBy
+          orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return orders;
+        });
   }
 
   static Future<app_models.Order?> getOrderById(String orderId) async {
