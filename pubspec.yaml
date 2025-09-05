@@ -21,6 +21,11 @@ dependencies:
   # Media and Maps
   image_picker: ^1.1.2
   google_maps_flutter: ^2.9.0
+  # UI and Design
+  google_fonts: ^6.2.1
+  # Utils
+  cached_network_image: ^3.3.1
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:

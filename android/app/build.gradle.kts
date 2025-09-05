@@ -11,8 +11,7 @@ plugins {
 android {
     namespace = "com.example.poopgo"
     compileSdk = flutter.compileSdkVersion
-    // Force highest available NDK for plugin compatibility
-    ndkVersion = "27.0.12077973"
+    // Let Flutter handle NDK version automatically
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

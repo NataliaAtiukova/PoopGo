@@ -1,46 +1,41 @@
-enum UserRole { customer, provider }
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserProfile {
-  final String uid;
-  final String? displayName;
-  final String? companyName;
-  final String? truckPhotoUrl;
-  final String? licenseInfo;
-  final double rating;
-  final UserRole role;
-  final String? fcmToken;
+  final String id;
+  final String name;
+  final String email;
+  final String phone;
+  final String role;
+  final DateTime createdAt;
 
   UserProfile({
-    required this.uid,
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.phone,
     required this.role,
-    this.displayName,
-    this.companyName,
-    this.truckPhotoUrl,
-    this.licenseInfo,
-    this.rating = 0,
-    this.fcmToken,
+    required this.createdAt,
   });
 
-  Map<String, dynamic> toMap() => {
-        'uid': uid,
-        'role': role.name,
-        'displayName': displayName,
-        'companyName': companyName,
-        'truckPhotoUrl': truckPhotoUrl,
-        'licenseInfo': licenseInfo,
-        'rating': rating,
-        'fcmToken': fcmToken,
-      };
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'role': role,
+      'createdAt': Timestamp.fromDate(createdAt),
+    };
+  }
 
-  static UserProfile fromMap(Map<String, dynamic> m) => UserProfile(
-        uid: m['uid'],
-        role: (m['role'] == 'provider') ? UserRole.provider : UserRole.customer,
-        displayName: m['displayName'],
-        companyName: m['companyName'],
-        truckPhotoUrl: m['truckPhotoUrl'],
-        licenseInfo: m['licenseInfo'],
-        rating: (m['rating'] ?? 0).toDouble(),
-        fcmToken: m['fcmToken'],
-      );
+  factory UserProfile.fromMap(Map<String, dynamic> map) {
+    return UserProfile(
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      email: map['email'] ?? '',
+      phone: map['phone'] ?? '',
+      role: map['role'] ?? '',
+      createdAt: (map['createdAt'] as Timestamp).toDate(),
+    );
+  }
 }
-

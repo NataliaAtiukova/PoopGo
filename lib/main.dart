@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
-import 'services/auth_service.dart';
-import 'services/firestore_service.dart';
-import 'services/storage_service.dart';
-import 'services/messaging_service.dart';
 import 'theme.dart';
-import 'routes.dart';
-
-// Firebase
-import 'package:firebase_core/firebase_core.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/customer/customer_home_screen.dart';
+import 'screens/provider/provider_home_screen.dart';
+import 'services/firebase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,20 +21,70 @@ class PoopGoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider<AuthService>(create: (_) => AuthService()),
-        Provider<FirestoreService>(create: (_) => FirestoreService()),
-        Provider<StorageService>(create: (_) => StorageService()),
-        Provider<MessagingService>(create: (_) => MessagingService()),
-      ],
-      child: MaterialApp(
-        title: 'PoopGo',
-        debugShowCheckedModeBanner: false,
-        theme: buildTheme(),
-        initialRoute: Routes.splash,
-        routes: Routes.map,
-      ),
+    return MaterialApp(
+      title: 'PoopGo',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.darkTheme,
+      home: const AuthWrapper(),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasData) {
+          return const RoleBasedHome();
+        }
+
+        return const LoginScreen();
+      },
+    );
+  }
+}
+
+class RoleBasedHome extends StatelessWidget {
+  const RoleBasedHome({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const LoginScreen();
+
+    return FutureBuilder<String?>(
+      future: FirebaseService.getUserRole(user.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        final role = snapshot.data;
+        switch (role) {
+          case 'customer':
+            return const CustomerHomeScreen();
+          case 'provider':
+            return const ProviderHomeScreen();
+          default:
+            return const LoginScreen();
+        }
+      },
     );
   }
 }
