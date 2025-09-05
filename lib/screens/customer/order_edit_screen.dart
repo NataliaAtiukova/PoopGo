@@ -6,14 +6,16 @@ import 'package:uuid/uuid.dart';
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
 
-class BookingFormScreen extends StatefulWidget {
-  const BookingFormScreen({super.key});
+class OrderEditScreen extends StatefulWidget {
+  final Order order;
+
+  const OrderEditScreen({super.key, required this.order});
 
   @override
-  State<BookingFormScreen> createState() => _BookingFormScreenState();
+  State<OrderEditScreen> createState() => _OrderEditScreenState();
 }
 
-class _BookingFormScreenState extends State<BookingFormScreen> {
+class _OrderEditScreenState extends State<OrderEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
   final _volumeController = TextEditingController();
@@ -24,6 +26,21 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
   final List<XFile> _selectedImages = [];
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeFields();
+  }
+
+  void _initializeFields() {
+    _addressController.text = widget.order.address;
+    _volumeController.text = widget.order.volume.toString();
+    _notesController.text = widget.order.notes ?? '';
+    _priceController.text = widget.order.price.toString();
+    _selectedDate = widget.order.requestedDate;
+    _selectedTime = TimeOfDay.fromDateTime(widget.order.requestedDate);
+  }
 
   @override
   void dispose() {
@@ -75,7 +92,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
     });
   }
 
-  Future<void> _submitOrder() async {
+  Future<void> _updateOrder() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -84,8 +101,13 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('User not authenticated');
 
-      // Create order
-      final orderId = const Uuid().v4();
+      // Upload new images if any
+      List<String> imageUrls = List.from(widget.order.imageUrls);
+      if (_selectedImages.isNotEmpty) {
+        final newImageUrls = await FirebaseService.uploadMultipleImages(_selectedImages, widget.order.id);
+        imageUrls.addAll(newImageUrls);
+      }
+
       final requestedDateTime = DateTime(
         _selectedDate.year,
         _selectedDate.month,
@@ -94,36 +116,24 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         _selectedTime.minute,
       );
 
-      // Upload images if any
-      List<String> imageUrls = [];
-      if (_selectedImages.isNotEmpty) {
-        imageUrls = await FirebaseService.uploadMultipleImages(_selectedImages, orderId);
-      }
-
-      final order = Order(
-        id: orderId,
-        customerId: user.uid,
+      final updatedOrder = widget.order.copyWith(
         address: _addressController.text.trim(),
-        latitude: 0.0, // TODO: Get from location service
-        longitude: 0.0, // TODO: Get from location service
         requestedDate: requestedDateTime,
-        status: OrderStatus.pending,
         notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
         volume: double.parse(_volumeController.text),
         imageUrls: imageUrls,
-        createdAt: DateTime.now(),
         price: double.parse(_priceController.text),
-        isPaid: false,
+        updatedAt: DateTime.now(),
       );
 
-      await FirebaseService.createOrder(order);
+      await FirebaseService.updateOrder(updatedOrder);
 
       if (mounted) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Success!'),
-            content: const Text('Your septic pickup request has been submitted successfully.'),
+            content: const Text('Your order has been updated successfully.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -142,7 +152,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Error'),
-            content: Text('Failed to submit order: ${e.toString()}'),
+            content: Text('Failed to update order: ${e.toString()}'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -161,7 +171,20 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Request Pickup'),
+        title: const Text('Edit Order'),
+        actions: [
+          if (widget.order.isEditable)
+            TextButton(
+              onPressed: _isLoading ? null : _updateOrder,
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Save'),
+            ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -170,6 +193,35 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Editability notice
+              if (!widget.order.isEditable)
+                Card(
+                  color: Colors.orange.withOpacity(0.1),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Colors.orange[700],
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'This order cannot be edited because it has been accepted by a provider.',
+                            style: TextStyle(
+                              color: Colors.orange[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              
+              if (!widget.order.isEditable) const SizedBox(height: 16),
+              
               // Address
               TextFormField(
                 controller: _addressController,
@@ -179,6 +231,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   prefixIcon: Icon(Icons.location_on),
                 ),
                 maxLines: 2,
+                readOnly: !widget.order.isEditable,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter the pickup address';
@@ -194,7 +247,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 children: [
                   Expanded(
                     child: InkWell(
-                      onTap: _selectDate,
+                      onTap: widget.order.isEditable ? _selectDate : null,
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -223,7 +276,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: InkWell(
-                      onTap: _selectTime,
+                      onTap: widget.order.isEditable ? _selectTime : null,
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -263,6 +316,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   prefixIcon: Icon(Icons.water_drop),
                 ),
                 keyboardType: TextInputType.number,
+                readOnly: !widget.order.isEditable,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter tank volume';
@@ -286,6 +340,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   prefixIcon: Icon(Icons.attach_money),
                 ),
                 keyboardType: TextInputType.number,
+                readOnly: !widget.order.isEditable,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter your price offer';
@@ -309,6 +364,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   prefixIcon: Icon(Icons.note),
                 ),
                 maxLines: 3,
+                readOnly: !widget.order.isEditable,
               ),
               
               const SizedBox(height: 16),
@@ -337,12 +393,14 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                           color: Colors.grey[400],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      OutlinedButton.icon(
-                        onPressed: _pickImages,
-                        icon: const Icon(Icons.add_photo_alternate),
-                        label: const Text('Add Photos'),
-                      ),
+                      if (widget.order.isEditable) ...[
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          onPressed: _pickImages,
+                          icon: const Icon(Icons.add_photo_alternate),
+                          label: const Text('Add Photos'),
+                        ),
+                      ],
                       if (_selectedImages.isNotEmpty) ...[
                         const SizedBox(height: 16),
                         SizedBox(
@@ -372,25 +430,26 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                                         },
                                       ),
                                     ),
-                                    Positioned(
-                                      top: 4,
-                                      right: 4,
-                                      child: GestureDetector(
-                                        onTap: () => _removeImage(index),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(
-                                            color: Colors.red,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(
-                                            Icons.close,
-                                            color: Colors.white,
-                                            size: 16,
+                                    if (widget.order.isEditable)
+                                      Positioned(
+                                        top: 4,
+                                        right: 4,
+                                        child: GestureDetector(
+                                          onTap: () => _removeImage(index),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                              size: 16,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
                                   ],
                                 ),
                               );
@@ -405,17 +464,18 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               
               const SizedBox(height: 32),
               
-              // Submit Button
-              ElevatedButton(
-                onPressed: _isLoading ? null : _submitOrder,
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Submit Request'),
-              ),
+              // Update Button (only if editable)
+              if (widget.order.isEditable)
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _updateOrder,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Update Order'),
+                ),
               
               const SizedBox(height: 16),
             ],
@@ -425,5 +485,3 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
     );
   }
 }
-
-

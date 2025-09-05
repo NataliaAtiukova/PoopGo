@@ -10,8 +10,31 @@ class OrderListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(order.address ?? 'Unnamed location'),
-      subtitle: Text('${DateFormat.yMMMd().add_jm().format(order.scheduledAt)} • ${order.volumeLiters} L'),
+      title: Text(order.address),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('${DateFormat.yMMMd().add_jm().format(order.requestedDate)} • ${order.volume}L'),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(
+                Icons.attach_money,
+                size: 16,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '${order.price.toStringAsFixed(0)} ₽',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
       trailing: _StatusChip(status: order.status),
       onTap: onTap,
     );

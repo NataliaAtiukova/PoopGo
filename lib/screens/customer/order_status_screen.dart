@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
 import '../shared/chat_screen.dart';
+import 'order_edit_screen.dart';
+import '../../widgets/payment_method_selector.dart';
 
 class OrderStatusScreen extends StatefulWidget {
   final String orderId;
@@ -46,6 +48,18 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
       appBar: AppBar(
         title: const Text('Order Status'),
         actions: [
+          if (_order!.isEditable)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OrderEditScreen(order: _order!),
+                  ),
+                ).then((_) => _loadOrder()); // Refresh order after editing
+              },
+            ),
           if (_order!.providerId != null)
             IconButton(
               icon: const Icon(Icons.chat),
@@ -108,6 +122,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                     _buildDetailRow('Volume', '${_order!.volume}L', Icons.water_drop),
                     const Divider(),
                     _buildDetailRow('Date', _formatDateTime(_order!.requestedDate), Icons.calendar_today),
+                    const Divider(),
+                    _buildDetailRow('Price', '${_order!.price.toStringAsFixed(0)} ₽', Icons.attach_money),
                     if (_order!.notes != null && _order!.notes!.isNotEmpty) ...[
                       const Divider(),
                       _buildDetailRow('Notes', _order!.notes!, Icons.note),
@@ -210,6 +226,45 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                           );
                         },
                       ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            
+            // Payment Summary (only for completed orders)
+            if (_order!.status == OrderStatus.completed) ...[
+              const SizedBox(height: 24),
+              Text(
+                'Payment Summary',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              
+              const SizedBox(height: 16),
+              
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildPaymentRow('Total Price', '${_order!.price.toStringAsFixed(0)} ₽', Icons.attach_money),
+                      const Divider(),
+                      _buildPaymentRow('Provider Share', '${_order!.price.toStringAsFixed(0)} ₽ (100%)', Icons.person),
+                      const Divider(),
+                      _buildPaymentRow('Platform Fee', '0 ₽ (0%)', Icons.business),
+                      const Divider(),
+                      _buildPaymentStatus(),
+                      if (!_order!.isPaid) ...[
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _showPaymentDialog,
+                            icon: const Icon(Icons.payment),
+                            label: const Text('Mark as Paid'),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -320,5 +375,160 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
   String _formatDateTime(DateTime dateTime) {
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildPaymentRow(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: Colors.grey[400],
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[400],
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentStatus() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(
+            _order!.isPaid ? Icons.check_circle : Icons.pending,
+            color: _order!.isPaid ? Colors.green : Colors.orange,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Payment Status',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[400],
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: _order!.isPaid ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              _order!.isPaid ? 'Paid' : 'Pending',
+              style: TextStyle(
+                color: _order!.isPaid ? Colors.green : Colors.orange,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPaymentDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          PaymentMethod? selectedMethod;
+          
+          return AlertDialog(
+            title: const Text('Payment Method'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: PaymentMethodSelector(
+                selectedMethod: selectedMethod,
+                onChanged: (method) {
+                  setDialogState(() {
+                    selectedMethod = method;
+                  });
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: selectedMethod != null 
+                    ? () => _confirmPayment(selectedMethod!)
+                    : null,
+                child: const Text('Continue'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _confirmPayment(PaymentMethod method) {
+    Navigator.pop(context); // Close method selection dialog
+    
+    showDialog(
+      context: context,
+      builder: (context) => PaymentConfirmationDialog(
+        amount: _order!.price,
+        paymentMethod: method,
+        onCancel: () => Navigator.pop(context),
+        onConfirm: () => _markAsPaid(),
+      ),
+    );
+  }
+
+  Future<void> _markAsPaid() async {
+    Navigator.pop(context); // Close confirmation dialog
+    
+    try {
+      final updatedOrder = _order!.copyWith(
+        isPaid: true,
+        updatedAt: DateTime.now(),
+      );
+      
+      await FirebaseService.updateOrder(updatedOrder);
+      
+      if (mounted) {
+        setState(() {
+          _order = updatedOrder;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment marked as completed!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update payment status: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
