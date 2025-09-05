@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "632068250247",
+    "project_id": "poogo-2d23d",
+    "storage_bucket": "poogo-2d23d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:632068250247:android:c1d8c57c36be6468f43622",
+        "android_client_info": {
+          "package_name": "com.example.poopgo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcrTkesiGSajobJ43vPvuyESPePl8IjHE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
