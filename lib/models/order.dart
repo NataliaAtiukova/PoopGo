@@ -1,81 +1,129 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum OrderStatus { pending, accepted, onTheWay, completed }
+enum OrderStatus {
+  pending,
+  accepted,
+  onTheWay,
+  completed,
+  cancelled;
 
-class Order {
-  final String id;
-  final String? address;
-  final double? lat;
-  final double? lng;
-  final DateTime scheduledAt;
-  final int volumeLiters;
-  final List<String> photoUrls;
-  final String? notes;
-  final String customerId;
-  final String? providerId;
-  final OrderStatus status;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  Order({
-    required this.id,
-    required this.customerId,
-    required this.scheduledAt,
-    required this.volumeLiters,
-    required this.status,
-    required this.createdAt,
-    required this.updatedAt,
-    this.address,
-    this.lat,
-    this.lng,
-    this.photoUrls = const [],
-    this.notes,
-    this.providerId,
-  });
-
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'address': address,
-        'lat': lat,
-        'lng': lng,
-        'scheduledAt': Timestamp.fromDate(scheduledAt),
-        'volumeLiters': volumeLiters,
-        'photoUrls': photoUrls,
-        'notes': notes,
-        'customerId': customerId,
-        'providerId': providerId,
-        'status': status.name,
-        'createdAt': Timestamp.fromDate(createdAt),
-        'updatedAt': Timestamp.fromDate(updatedAt),
-      };
-
-  static Order fromMap(Map<String, dynamic> m) => Order(
-        id: m['id'],
-        address: m['address'],
-        lat: (m['lat'] as num?)?.toDouble(),
-        lng: (m['lng'] as num?)?.toDouble(),
-        scheduledAt: (m['scheduledAt'] as Timestamp).toDate(),
-        volumeLiters: (m['volumeLiters'] as num).toInt(),
-        photoUrls: (m['photoUrls'] as List?)?.cast<String>() ?? [],
-        notes: m['notes'],
-        customerId: m['customerId'],
-        providerId: m['providerId'],
-        status: _statusFromString(m['status']),
-        createdAt: (m['createdAt'] as Timestamp).toDate(),
-        updatedAt: (m['updatedAt'] as Timestamp).toDate(),
-      );
-
-  static OrderStatus _statusFromString(String s) {
-    switch (s) {
-      case 'accepted':
-        return OrderStatus.accepted;
-      case 'onTheWay':
-        return OrderStatus.onTheWay;
-      case 'completed':
-        return OrderStatus.completed;
-      default:
-        return OrderStatus.pending;
+  String get displayName {
+    switch (this) {
+      case OrderStatus.pending:
+        return 'Pending';
+      case OrderStatus.accepted:
+        return 'Accepted';
+      case OrderStatus.onTheWay:
+        return 'On the way';
+      case OrderStatus.completed:
+        return 'Completed';
+      case OrderStatus.cancelled:
+        return 'Cancelled';
     }
   }
 }
 
+class Order {
+  final String id;
+  final String customerId;
+  final String? providerId;
+  final String address;
+  final double latitude;
+  final double longitude;
+  final DateTime requestedDate;
+  final OrderStatus status;
+  final String? notes;
+  final double volume; // in liters
+  final List<String> imageUrls;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+
+  Order({
+    required this.id,
+    required this.customerId,
+    this.providerId,
+    required this.address,
+    required this.latitude,
+    required this.longitude,
+    required this.requestedDate,
+    required this.status,
+    this.notes,
+    required this.volume,
+    this.imageUrls = const [],
+    required this.createdAt,
+    this.updatedAt,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'customerId': customerId,
+      'providerId': providerId,
+      'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
+      'requestedDate': Timestamp.fromDate(requestedDate),
+      'status': status.name,
+      'notes': notes,
+      'volume': volume,
+      'imageUrls': imageUrls,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+    };
+  }
+
+  factory Order.fromMap(Map<String, dynamic> map) {
+    return Order(
+      id: map['id'] ?? '',
+      customerId: map['customerId'] ?? '',
+      providerId: map['providerId'],
+      address: map['address'] ?? '',
+      latitude: map['latitude']?.toDouble() ?? 0.0,
+      longitude: map['longitude']?.toDouble() ?? 0.0,
+      requestedDate: (map['requestedDate'] as Timestamp).toDate(),
+      status: OrderStatus.values.firstWhere(
+        (e) => e.name == map['status'],
+        orElse: () => OrderStatus.pending,
+      ),
+      notes: map['notes'],
+      volume: map['volume']?.toDouble() ?? 0.0,
+      imageUrls: List<String>.from(map['imageUrls'] ?? []),
+      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      updatedAt: map['updatedAt'] != null 
+          ? (map['updatedAt'] as Timestamp).toDate()
+          : null,
+    );
+  }
+
+  Order copyWith({
+    String? id,
+    String? customerId,
+    String? providerId,
+    String? address,
+    double? latitude,
+    double? longitude,
+    DateTime? requestedDate,
+    OrderStatus? status,
+    String? notes,
+    double? volume,
+    List<String>? imageUrls,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Order(
+      id: id ?? this.id,
+      customerId: customerId ?? this.customerId,
+      providerId: providerId ?? this.providerId,
+      address: address ?? this.address,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      requestedDate: requestedDate ?? this.requestedDate,
+      status: status ?? this.status,
+      notes: notes ?? this.notes,
+      volume: volume ?? this.volume,
+      imageUrls: imageUrls ?? this.imageUrls,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
