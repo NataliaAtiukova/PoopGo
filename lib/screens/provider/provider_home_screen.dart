@@ -9,6 +9,7 @@ import '../../widgets/payment_method_display.dart';
 import '../shared/chat_screen.dart';
 import 'provider_job_history_screen.dart';
 import '../shared/profile_settings_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProviderHomeScreen extends StatefulWidget {
   const ProviderHomeScreen({super.key});
@@ -24,7 +25,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('PoopGo Provider'),
+        title: Text(AppLocalizations.of(context)!.providerAppTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -46,22 +47,22 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.work),
-            label: 'Available',
+            icon: const Icon(Icons.work),
+            label: AppLocalizations.of(context)!.navAvailable,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.assignment),
-            label: 'My Jobs',
+            icon: const Icon(Icons.assignment),
+            label: AppLocalizations.of(context)!.navMyJobs,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'History',
+            icon: const Icon(Icons.history),
+            label: AppLocalizations.of(context)!.navHistory,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+            icon: const Icon(Icons.person),
+            label: AppLocalizations.of(context)!.navProfile,
           ),
         ],
       ),
@@ -101,7 +102,7 @@ class _AvailableJobsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No available jobs',
+                  AppLocalizations.of(context)!.noAvailableJobs,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),
@@ -188,14 +189,14 @@ class _AvailableJobsTab extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => _rejectOrder(context, order),
-                    child: const Text('Reject'),
+                    child: Text(AppLocalizations.of(context)!.reject),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => _acceptOrder(context, order),
-                    child: const Text('Accept'),
+                    child: Text(AppLocalizations.of(context)!.accept),
                   ),
                 ),
               ],
@@ -441,7 +442,7 @@ class _MyJobsTab extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.chat),
-                      label: const Text('Chat'),
+                      label: Text(AppLocalizations.of(context)!.chat),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -450,7 +451,7 @@ class _MyJobsTab extends StatelessWidget {
                       child: ElevatedButton.icon(
                         onPressed: () => _updateStatus(context, order, OrderStatus.onTheWay),
                         icon: const Icon(Icons.local_shipping),
-                        label: const Text('Start'),
+                        label: Text(AppLocalizations.of(context)!.start),
                       ),
                     ),
                   if (order.status == OrderStatus.onTheWay)
@@ -458,7 +459,7 @@ class _MyJobsTab extends StatelessWidget {
                       child: ElevatedButton.icon(
                         onPressed: () => _updateStatus(context, order, OrderStatus.completed),
                         icon: const Icon(Icons.check),
-                        label: const Text('Complete'),
+                        label: Text(AppLocalizations.of(context)!.complete),
                       ),
                     ),
                 ],
@@ -737,7 +738,7 @@ class _ProfileTab extends StatelessWidget {
               children: [
                 ListTile(
                   leading: const Icon(Icons.settings),
-                  title: const Text('Settings'),
+                  title: Text(AppLocalizations.of(context)!.settings),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     Navigator.push(
@@ -751,7 +752,7 @@ class _ProfileTab extends StatelessWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.help),
-                  title: const Text('Help & Support'),
+                  title: Text(AppLocalizations.of(context)!.helpSupport),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     // TODO: Implement help
@@ -760,7 +761,7 @@ class _ProfileTab extends StatelessWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.logout),
-                  title: const Text('Sign Out'),
+                  title: Text(AppLocalizations.of(context)!.signOut),
                   onTap: () async {
                     await FirebaseAuth.instance.signOut();
                   },

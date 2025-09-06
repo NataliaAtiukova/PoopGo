@@ -6,6 +6,7 @@ import '../../services/payment_config.dart';
 import '../shared/chat_screen.dart';
 import 'order_edit_screen.dart';
 import '../../widgets/payment_method_selector.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../utils/money.dart';
 import '../../widgets/service_fee_modal.dart';
 
@@ -58,7 +59,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Order Status'),
+        title: Text(AppLocalizations.of(context)!.orderStatus),
         actions: [
           if (_order!.isEditable)
             IconButton(
@@ -228,7 +229,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             if (_order!.status == OrderStatus.accepted) ...[
               const SizedBox(height: 24),
               Text(
-                'Payment Summary',
+                AppLocalizations.of(context)!.paymentSummary,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               
@@ -257,7 +258,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                                 if (mounted) setState(() => _order = refreshed);
                               },
                               icon: const Icon(Icons.payment),
-                              label: const Text('Pay Now'),
+                              label: Text(AppLocalizations.of(context)!.payNow),
                             ),
                           ),
                         ],

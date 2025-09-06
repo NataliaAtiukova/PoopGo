@@ -5,6 +5,7 @@ import '../services/payment_config.dart';
 import '../utils/money.dart';
 import '../services/firebase_service.dart';
 import '../screens/payment/cloudpayments_webview.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ServiceFeeModal extends StatelessWidget {
   final Order order;
@@ -58,7 +59,7 @@ class ServiceFeeModal extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Total Price',
+                    AppLocalizations.of(context)!.totalPrice,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
                   ),
                 ),
@@ -85,7 +86,7 @@ class ServiceFeeModal extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Service Fee (10%)',
+                    AppLocalizations.of(context)!.serviceFee10,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
                   ),
                 ),
@@ -136,7 +137,7 @@ class ServiceFeeModal extends StatelessWidget {
                   }
                 },
                 icon: const Icon(Icons.payment),
-                label: const Text('Pay Service Fee'),
+                label: Text(AppLocalizations.of(context)!.payNow),
               ),
             ),
           if (PaymentConfig.enablePaymentSimulation && order.status == OrderStatus.accepted && !order.serviceFeePaid) ...[
