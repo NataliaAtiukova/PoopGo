@@ -117,6 +117,13 @@ class FirebaseService {
     return null;
   }
 
+  // Provider Profiles (separate collection)
+  static Future<Map<String, dynamic>?> getProviderProfile(String providerId) async {
+    final doc = await _firestore.collection('providers').doc(providerId).get();
+    if (!doc.exists) return null;
+    return doc.data();
+  }
+
   // Image Upload
   static Future<String> uploadImage(XFile image, String orderId) async {
     final ref = _storage.ref().child('orders/$orderId/${DateTime.now().millisecondsSinceEpoch}.jpg');
@@ -191,5 +198,4 @@ class FirebaseService {
     });
   }
 }
-
 

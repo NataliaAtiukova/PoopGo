@@ -8,6 +8,7 @@ class FirestoreService {
   // Collections
   CollectionReference get users => _db.collection('users');
   CollectionReference get orders => _db.collection('orders');
+  CollectionReference get providers => _db.collection('providers');
 
   Future<void> createUserProfile(UserProfile profile) async {
     await users.doc(profile.uid).set(profile.toMap(), SetOptions(merge: true));
@@ -74,5 +75,29 @@ class FirestoreService {
       'text': text,
       'createdAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  Future<void> saveProviderProfile({
+    required String uid,
+    required String fullName,
+    required String phone,
+    String? companyName,
+    String? vehicleInfo,
+  }) async {
+    await providers.doc(uid).set({
+      'uid': uid,
+      'fullName': fullName,
+      'phone': phone,
+      if (companyName != null && companyName.isNotEmpty) 'companyName': companyName,
+      if (vehicleInfo != null && vehicleInfo.isNotEmpty) 'vehicleInfo': vehicleInfo,
+      'updatedAt': FieldValue.serverTimestamp(),
+      'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  Future<Map<String, dynamic>?> getProviderProfile(String uid) async {
+    final snap = await providers.doc(uid).get();
+    if (!snap.exists) return null;
+    return snap.data() as Map<String, dynamic>;
   }
 }
