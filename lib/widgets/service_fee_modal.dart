@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/order.dart';
 import '../services/payment_config.dart';
+import '../utils/money.dart';
 import '../services/firebase_service.dart';
 import '../screens/payment/cloudpayments_webview.dart';
 
@@ -10,10 +11,7 @@ class ServiceFeeModal extends StatelessWidget {
 
   const ServiceFeeModal({super.key, required this.order});
 
-  double _feeAmount() {
-    final raw = order.price * PaymentConfig.serviceFeePercent;
-    return double.parse(raw.toStringAsFixed(2));
-  }
+  double _feeAmount() => calculateServiceFee(order.price);
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +43,34 @@ class ServiceFeeModal extends StatelessWidget {
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
           ),
           const SizedBox(height: 16),
+          // Summary: total price
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF151923),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF1F2430)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.receipt_long, color: Colors.lightBlue[300]),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Total Price',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                  ),
+                ),
+                Text(
+                  formatRub(order.price),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.lightBlue[300], fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Summary: service fee (10%)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -64,7 +90,7 @@ class ServiceFeeModal extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '₽${amount.toStringAsFixed(2)}',
+                  formatRub(amount),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.lightBlue[300], fontWeight: FontWeight.bold),
                 ),
               ],

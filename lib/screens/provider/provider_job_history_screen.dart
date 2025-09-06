@@ -13,35 +13,47 @@ class ProviderJobHistoryScreen extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     return Scaffold(
       appBar: AppBar(title: const Text('Completed Jobs')),
-      body: StreamBuilder<List<Order>>(
-        stream: FirebaseService.getCompletedOrdersForProvider(uid),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          final orders = snapshot.data ?? [];
-          if (orders.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[500]),
-                  const SizedBox(height: 12),
-                  const Text('No completed jobs yet'),
-                ],
-              ),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: orders.length,
-            itemBuilder: (context, index) => _CompletedOrderTile(order: orders[index]),
+      body: ProviderJobHistoryList(providerId: uid),
+    );
+  }
+}
+
+/// Reusable list widget for completed jobs for current provider.
+class ProviderJobHistoryList extends StatelessWidget {
+  final String? providerId;
+  const ProviderJobHistoryList({super.key, this.providerId});
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = providerId ?? FirebaseAuth.instance.currentUser!.uid;
+    return StreamBuilder<List<Order>>(
+      stream: FirebaseService.getCompletedOrdersForProvider(uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        final orders = snapshot.data ?? [];
+        if (orders.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[500]),
+                const SizedBox(height: 12),
+                const Text('No completed jobs yet'),
+              ],
+            ),
           );
-        },
-      ),
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: orders.length,
+          itemBuilder: (context, index) => _CompletedOrderTile(order: orders[index]),
+        );
+      },
     );
   }
 }
@@ -78,4 +90,3 @@ class _CompletedOrderTile extends StatelessWidget {
 
   String _formatDate(DateTime date) => '${date.day}/${date.month}/${date.year}';
 }
-

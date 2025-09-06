@@ -24,7 +24,9 @@ class PoopGoApp extends StatelessWidget {
     return MaterialApp(
       title: 'PoopGo',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       home: const AuthWrapper(),
     );
   }
@@ -88,4 +90,3 @@ class RoleBasedHome extends StatelessWidget {
     );
   }
 }
-

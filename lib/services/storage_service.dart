@@ -9,5 +9,11 @@ class StorageService {
     final task = await ref.putFile(file);
     return task.ref.getDownloadURL();
   }
-}
 
+  Future<String> uploadProfileImage(String uid, File file, {String folder = 'profiles'}) async {
+    final ts = DateTime.now().millisecondsSinceEpoch.toString();
+    final ref = _storage.ref().child(folder).child(uid).child('avatar_$ts.jpg');
+    final task = await ref.putFile(file);
+    return task.ref.getDownloadURL();
+  }
+}

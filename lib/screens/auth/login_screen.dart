@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../services/firebase_service.dart';
 import '../../models/user_profile.dart';
@@ -73,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (credential.user != null) {
       await FirebaseService.saveUserRole(credential.user!.uid, _selectedRole);
       
-      // Create user profile
+      // Create user profile in users collection (always)
       final profile = UserProfile(
         id: credential.user!.uid,
         name: _nameController.text.trim(),
@@ -84,6 +85,27 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       
       await FirebaseService.updateUserProfile(profile);
+
+      // Ensure required fields are stored with exact keys
+      final db = FirebaseFirestore.instance;
+      await db.collection('users').doc(credential.user!.uid).set({
+        'fullName': _nameController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'email': _emailController.text.trim(),
+        'id': credential.user!.uid,
+      }, SetOptions(merge: true));
+
+      // If Provider role, also save into providers collection
+      if (_selectedRole == 'provider') {
+        await db.collection('providers').doc(credential.user!.uid).set({
+          'uid': credential.user!.uid,
+          'fullName': _nameController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'email': _emailController.text.trim(),
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
     }
   }
 
