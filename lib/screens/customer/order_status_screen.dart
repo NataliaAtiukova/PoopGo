@@ -32,7 +32,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
       setState(() => _order = order);
     }
     if (mounted && _order != null && _shouldLockContact()) {
-      // Prompt to pay service fee when accepted/onTheWay/completed and not paid
+      // Prompt only on Accepted
       await Future.delayed(const Duration(milliseconds: 200));
       if (mounted) {
         await showServiceFeeModal(context, _order!);
@@ -195,7 +195,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               ),
             ],
             
-            // Provider Info
+            // Provider Info with commission gating
             if (_order!.providerId != null) ...[
               const SizedBox(height: 24),
               Text(
@@ -205,64 +205,14 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               
               const SizedBox(height: 16),
               
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        child: const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Provider Assigned',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Your provider has been assigned and will contact you soon.',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.chat,
-                          color: _shouldLockContact() ? Colors.grey : null,
-                        ),
-                        onPressed: () async {
-                          if (_shouldLockContact()) {
-                            await showServiceFeeModal(context, _order!);
-                            final refreshed = await FirebaseService.getOrderById(widget.orderId);
-                            if (mounted) setState(() => _order = refreshed);
-                            return;
-                          }
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChatScreen(orderId: widget.orderId),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                child: _buildProviderCard(),
               ),
             ],
             
-            // Service Commission & Payment Summary for accepted and later
-            if (_order!.status == OrderStatus.accepted || _order!.status == OrderStatus.onTheWay || _order!.status == OrderStatus.completed) ...[
+            // Service Commission card (only at Accepted)
+            if (_order!.status == OrderStatus.accepted) ...[
               const SizedBox(height: 24),
               Text(
                 'Payment Summary',
@@ -283,23 +233,23 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                       _buildPaymentRow('Service Fee (10%)', _feeText(), Icons.business),
                        const Divider(),
                        _buildPaymentStatus(),
-                       const SizedBox(height: 8),
-                       _buildServiceFeeStatus(),
+                      const SizedBox(height: 8),
+                      _buildServiceFeeStatus(),
                       if (_shouldLockContact()) ...[
-                         const SizedBox(height: 16),
-                         SizedBox(
-                           width: double.infinity,
-                           child: ElevatedButton.icon(
-                             onPressed: () async {
-                               await showServiceFeeModal(context, _order!);
-                               final refreshed = await FirebaseService.getOrderById(widget.orderId);
-                               if (mounted) setState(() => _order = refreshed);
-                             },
-                             icon: const Icon(Icons.payment),
-                             label: const Text('Pay Service Fee'),
-                           ),
-                         ),
-                       ],
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                await showServiceFeeModal(context, _order!);
+                                final refreshed = await FirebaseService.getOrderById(widget.orderId);
+                                if (mounted) setState(() => _order = refreshed);
+                              },
+                              icon: const Icon(Icons.payment),
+                              label: const Text('Pay Now'),
+                            ),
+                          ),
+                        ],
                     ],
                   ),
                 ),
@@ -413,11 +363,11 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   }
 
   bool _shouldLockContact() {
-    // Lock contact access when order is accepted or later and service fee not paid
+    // Lock contact access only when order is Accepted and service fee not paid
     if (_order == null) return false;
     if (_order!.price < PaymentConfig.minTotalForCommission) return false;
     final s = _order!.status;
-    final requiresFee = (s == OrderStatus.accepted || s == OrderStatus.onTheWay || s == OrderStatus.completed);
+    final requiresFee = (s == OrderStatus.accepted);
     return requiresFee && !_order!.serviceFeePaid;
   }
 
@@ -486,6 +436,110 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProviderCard() {
+    // Accepted + unpaid: locked card and pay prompt
+    if (_shouldLockContact()) {
+      return Card(
+        key: const ValueKey('lockedCard'),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              const CircleAvatar(radius: 24, child: Icon(Icons.lock)),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Contact Locked', style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Your order has been accepted by a provider. To view their contact info and continue, please pay the 10% service fee.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await showServiceFeeModal(context, _order!);
+                  final refreshed = await FirebaseService.getOrderById(widget.orderId);
+                  if (mounted) setState(() => _order = refreshed);
+                },
+                child: const Text('Pay Now'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Otherwise, show provider contact. Only query providers when allowed.
+    final showContact = _order!.status != OrderStatus.accepted || _order!.serviceFeePaid;
+    if (!showContact) {
+      // Fallback minimal card
+      return Card(
+        key: const ValueKey('assignedCard'),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              const CircleAvatar(radius: 24, child: Icon(Icons.person)),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text('Provider Assigned', style: Theme.of(context).textTheme.titleMedium),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chat),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(orderId: widget.orderId)));
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return FutureBuilder<Map<String, dynamic>?>(
+      key: const ValueKey('contactCard'),
+      future: FirebaseService.getProviderProfile(_order!.providerId!),
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const Card(child: Padding(padding: EdgeInsets.all(16), child: LinearProgressIndicator()));
+        }
+        final data = snap.data;
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const CircleAvatar(radius: 24, child: Icon(Icons.person)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(data?['fullName'] ?? 'Provider', style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 4),
+                      Text(data?['phone'] ?? '-', style: Theme.of(context).textTheme.bodyMedium),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chat),
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(orderId: widget.orderId)));
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

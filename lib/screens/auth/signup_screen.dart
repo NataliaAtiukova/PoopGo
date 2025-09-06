@@ -18,6 +18,9 @@ class _SignupScreenState extends State<SignupScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _name = TextEditingController();
+  final _phone = TextEditingController();
+  final _company = TextEditingController();
+  final _vehicle = TextEditingController();
   UserRole _role = UserRole.customer;
   bool _loading = false;
 
@@ -26,6 +29,9 @@ class _SignupScreenState extends State<SignupScreen> {
     _email.dispose();
     _password.dispose();
     _name.dispose();
+    _phone.dispose();
+    _company.dispose();
+    _vehicle.dispose();
     super.dispose();
   }
 
@@ -43,6 +49,15 @@ class _SignupScreenState extends State<SignupScreen> {
         role: _role,
         firestore: firestore,
       );
+      if (_role == UserRole.provider) {
+        await firestore.saveProviderProfile(
+          uid: auth.currentUser!.uid,
+          fullName: _name.text.trim(),
+          phone: _phone.text.trim(),
+          companyName: _company.text.trim().isEmpty ? null : _company.text.trim(),
+          vehicleInfo: _vehicle.text.trim().isEmpty ? null : _vehicle.text.trim(),
+        );
+      }
       await messaging.init(firestore, auth.currentUser!.uid);
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(
@@ -70,10 +85,29 @@ class _SignupScreenState extends State<SignupScreen> {
             children: [
               TextFormField(
                 controller: _name,
-                decoration: const InputDecoration(labelText: 'Name / Company'),
+                decoration: const InputDecoration(labelText: 'Full Name'),
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 12),
+              if (_role == UserRole.provider) ...[
+                TextFormField(
+                  controller: _phone,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(labelText: 'Phone Number'),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _company,
+                  decoration: const InputDecoration(labelText: 'Company Name (optional)'),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _vehicle,
+                  decoration: const InputDecoration(labelText: 'Vehicle Info (optional)'),
+                ),
+                const SizedBox(height: 12),
+              ],
               TextFormField(
                 controller: _email,
                 decoration: const InputDecoration(labelText: 'Email'),
@@ -115,4 +149,3 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 }
-
