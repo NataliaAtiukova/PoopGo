@@ -80,7 +80,7 @@ class _CompletedOrderTile extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            Text('Completed on ${_formatDate(order.updatedAt ?? order.createdAt)}', style: Theme.of(context).textTheme.bodyMedium),
+            Text(AppLocalizations.of(context)!.completedOn(_formatDate(order.updatedAt ?? order.createdAt)), style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 6),
             Text('${AppLocalizations.of(context)!.volume}: ${order.volume}L', style: Theme.of(context).textTheme.bodyMedium),
           ],

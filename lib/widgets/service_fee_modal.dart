@@ -116,7 +116,7 @@ class ServiceFeeModal extends StatelessWidget {
                         orderId: order.id,
                         amount: amount,
                         customerAccountId: order.customerId,
-                        description: 'Service commission for order ${order.id}',
+                        description: AppLocalizations.of(context)!.serviceCommissionForOrder(order.id),
                       ),
                     ),
                   );

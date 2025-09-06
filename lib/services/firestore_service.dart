@@ -11,7 +11,7 @@ class FirestoreService {
   CollectionReference get providers => _db.collection('providers');
 
   Future<void> createUserProfile(UserProfile profile) async {
-    await users.doc(profile.uid).set(profile.toMap(), SetOptions(merge: true));
+    await users.doc(profile.id).set(profile.toMap(), SetOptions(merge: true));
   }
 
   Future<UserProfile?> getUserProfile(String uid) async {

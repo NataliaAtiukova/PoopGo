@@ -43,9 +43,10 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final l = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error sending message: $e'),
+            content: Text('${l.errorSendingMessage}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -235,7 +236,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   _formatTime(messageTime),
                   style: TextStyle(
                     color: isMe 
-                        ? Colors.white.withOpacity(0.7)
+                        ? Colors.white.withValues(alpha: 0.7)
                         : Colors.grey[400],
                     fontSize: 12,
                   ),
@@ -266,15 +267,15 @@ class _ChatScreenState extends State<ChatScreen> {
   String _formatTime(DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
-    
+    final l = AppLocalizations.of(context)!;
     if (difference.inDays > 0) {
       return '${time.day}/${time.month}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
+      return l.hoursAgo(difference.inHours.toString());
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
+      return l.minutesAgo(difference.inMinutes.toString());
     } else {
-      return 'Just now';
+      return l.justNow;
     }
   }
 }

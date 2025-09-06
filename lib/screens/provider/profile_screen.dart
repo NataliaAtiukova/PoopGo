@@ -52,9 +52,9 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            TextField(controller: _company, decoration: const InputDecoration(labelText: 'Company Name')),
+            TextField(controller: _company, decoration: InputDecoration(labelText: AppLocalizations.of(context)!.companyNameOptional)),
             const SizedBox(height: 12),
-            TextField(controller: _license, decoration: const InputDecoration(labelText: 'License Info')),
+            TextField(controller: _license, decoration: InputDecoration(labelText: AppLocalizations.of(context)!.licenseInfoOptional)),
             const SizedBox(height: 12),
             Row(
               children: [

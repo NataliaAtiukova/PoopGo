@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PaymentMethodDisplay extends StatelessWidget {
@@ -39,27 +40,39 @@ class PaymentMethodDisplay extends StatelessWidget {
     }
 
     final methodData = _getPaymentMethodData(paymentMethod!);
+    final localizedLabel = _localizedMethodLabel(context, paymentMethod!);
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          methodData.icon,
-          size: iconSize,
-          color: methodData.color,
-        ),
-        if (showLabel) ...[
-          const SizedBox(width: 4),
-          Text(
-            paymentMethod!,
-            style: TextStyle(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              methodData.icon,
+              size: iconSize,
               color: methodData.color,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
             ),
-          ),
-        ],
-      ],
+            if (showLabel) ...[
+              const SizedBox(width: 4),
+              // Constrain and ellipsize long labels like "Картой по завершении"
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: math.max(0.0, constraints.maxWidth - iconSize - 8)),
+                child: Text(
+                  localizedLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: TextStyle(
+                    color: methodData.color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 
@@ -81,6 +94,20 @@ class PaymentMethodDisplay extends StatelessWidget {
           icon: Icons.payment,
           color: Colors.orange,
         );
+    }
+  }
+
+  String _localizedMethodLabel(BuildContext context, String method) {
+    final l = AppLocalizations.of(context)!;
+    switch (method.toLowerCase()) {
+      case 'cash':
+        return l.cashPayment;
+      case 'bank transfer':
+        return l.bankTransfer;
+      case 'card on completion':
+        return l.cardOnCompletion;
+      default:
+        return method;
     }
   }
 }

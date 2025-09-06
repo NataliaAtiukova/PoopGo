@@ -64,7 +64,7 @@ class _StatusChip extends StatelessWidget {
     };
     return Chip(
       label: Builder(builder: (context) => Text(orderStatusText(context, status))),
-      backgroundColor: color.withOpacity(.15),
+      backgroundColor: color.withValues(alpha: .15),
       labelStyle: TextStyle(color: color),
     );
   }
