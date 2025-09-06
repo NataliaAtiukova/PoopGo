@@ -4,8 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>Poopgo</string>
+    <key>CFBundleDisplayName</key>
+    <string>PoopGo</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -43,7 +43,14 @@
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
+    <key>UIApplicationSupportsIndirectInputEvents</key>
+    <true/>
+    <!-- iOS permission usage strings -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>We need your location to find nearby providers.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>We need access to your camera to attach photos to the order.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need access to your gallery to upload images.</string>
 </dict>
 </plist>
