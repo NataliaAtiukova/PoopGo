@@ -31,8 +31,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     if (mounted) {
       setState(() => _order = order);
     }
-    if (mounted && _order != null && _shouldLockContact()) {
-      // Prompt only on Accepted
+    if (mounted && _order != null && _shouldPromptCommission()) {
+      // Prompt only on Accepted & unpaid
       await Future.delayed(const Duration(milliseconds: 200));
       if (mounted) {
         await showServiceFeeModal(context, _order!);
@@ -75,13 +75,25 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             IconButton(
               icon: Icon(
                 Icons.chat,
-                color: _shouldLockContact() ? Colors.grey : null,
+                color: _isContactLocked() ? Colors.grey : null,
               ),
               onPressed: () async {
-                if (_shouldLockContact()) {
-                  await showServiceFeeModal(context, _order!);
-                  final refreshed = await FirebaseService.getOrderById(widget.orderId);
-                  if (mounted) setState(() => _order = refreshed);
+                if (_isContactLocked()) {
+                  if (_shouldPromptCommission()) {
+                    await showServiceFeeModal(context, _order!);
+                    final refreshed = await FirebaseService.getOrderById(widget.orderId);
+                    if (mounted) setState(() => _order = refreshed);
+                  } else {
+                    if (mounted) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => const AlertDialog(
+                          title: Text('Contact locked'),
+                          content: Text('The service fee has not been paid. Contact details are unavailable.'),
+                        ),
+                      );
+                    }
+                  }
                   return;
                 }
                 Navigator.push(
@@ -235,7 +247,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                        _buildPaymentStatus(),
                       const SizedBox(height: 8),
                       _buildServiceFeeStatus(),
-                      if (_shouldLockContact()) ...[
+                      if (_shouldPromptCommission()) ...[
                           const SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,
@@ -362,13 +374,14 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
-  bool _shouldLockContact() {
-    // Lock contact access only when order is Accepted and service fee not paid
+  bool _isContactLocked() {
     if (_order == null) return false;
-    if (_order!.price < PaymentConfig.minTotalForCommission) return false;
-    final s = _order!.status;
-    final requiresFee = (s == OrderStatus.accepted);
-    return requiresFee && !_order!.serviceFeePaid;
+    return _order!.serviceFeePaid == false;
+  }
+
+  bool _shouldPromptCommission() {
+    if (_order == null) return false;
+    return _order!.status == OrderStatus.accepted && _order!.serviceFeePaid == false;
   }
 
   Widget _buildPaymentRow(String label, String value, IconData icon) {
@@ -440,8 +453,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   }
 
   Widget _buildProviderCard() {
-    // Accepted + unpaid: locked card and pay prompt
-    if (_shouldLockContact()) {
+    // Locked state
+    if (_isContactLocked()) {
       return Card(
         key: const ValueKey('lockedCard'),
         child: Padding(
@@ -463,14 +476,15 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   ],
                 ),
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  await showServiceFeeModal(context, _order!);
-                  final refreshed = await FirebaseService.getOrderById(widget.orderId);
-                  if (mounted) setState(() => _order = refreshed);
-                },
-                child: const Text('Pay Now'),
-              ),
+              if (_shouldPromptCommission())
+                ElevatedButton(
+                  onPressed: () async {
+                    await showServiceFeeModal(context, _order!);
+                    final refreshed = await FirebaseService.getOrderById(widget.orderId);
+                    if (mounted) setState(() => _order = refreshed);
+                  },
+                  child: const Text('Pay Now'),
+                ),
             ],
           ),
         ),
@@ -478,8 +492,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     }
 
     // Otherwise, show provider contact. Only query providers when allowed.
-    final showContact = _order!.status != OrderStatus.accepted || _order!.serviceFeePaid;
-    if (!showContact) {
+    if (_isContactLocked()) {
       // Fallback minimal card
       return Card(
         key: const ValueKey('assignedCard'),
@@ -489,15 +502,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             children: [
               const CircleAvatar(radius: 24, child: Icon(Icons.person)),
               const SizedBox(width: 16),
-              Expanded(
-                child: Text('Provider Assigned', style: Theme.of(context).textTheme.titleMedium),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chat),
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(orderId: widget.orderId)));
-                },
-              ),
+              Expanded(child: Text('Provider Assigned', style: Theme.of(context).textTheme.titleMedium)),
+              IconButton(icon: const Icon(Icons.chat, color: Colors.grey), onPressed: () {}),
             ],
           ),
         ),
@@ -583,10 +589,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   }
 
   String _feeText() {
-    if (_order!.price < PaymentConfig.minTotalForCommission) {
-      return '0 ₽ (skipped)';
-    }
-    return '${(_order!.price * PaymentConfig.serviceFeePercent).toStringAsFixed(0)} ₽';
+    return '₽${(_order!.price * PaymentConfig.serviceFeePercent).toStringAsFixed(2)}';
   }
 
   void _showPaymentDialog() {
