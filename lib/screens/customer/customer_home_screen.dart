@@ -6,6 +6,7 @@ import '../../models/order.dart';
 import '../../services/firebase_service.dart';
 import '../../widgets/price_display.dart';
 import 'booking_form_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'order_status_screen.dart';
 import '../shared/chat_screen.dart';
 import '../shared/profile_settings_screen.dart';
@@ -24,7 +25,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('PoopGo'),
+        title: Text(AppLocalizations.of(context)!.appTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -45,18 +46,18 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+            icon: const Icon(Icons.home),
+            label: AppLocalizations.of(context)!.navHome,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Orders',
+            icon: const Icon(Icons.history),
+            label: AppLocalizations.of(context)!.navOrders,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+            icon: const Icon(Icons.person),
+            label: AppLocalizations.of(context)!.navProfile,
           ),
         ],
       ),
@@ -71,7 +72,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 );
               },
               icon: const Icon(Icons.add),
-              label: const Text('Request Pickup'),
+              label: Text(AppLocalizations.of(context)!.requestPickup),
             )
           : null,
     );
@@ -124,7 +125,7 @@ class _HomeTab extends StatelessWidget {
               Expanded(
                 child: _buildActionCard(
                   context,
-                  'Request Pickup',
+                  AppLocalizations.of(context)!.requestPickup,
                   Icons.local_shipping,
                   () {
                     Navigator.push(
@@ -140,7 +141,7 @@ class _HomeTab extends StatelessWidget {
               Expanded(
                 child: _buildActionCard(
                   context,
-                  'Track Orders',
+                  AppLocalizations.of(context)!.trackOrders,
                   Icons.track_changes,
                   () {
                     // Switch to orders tab
@@ -588,7 +589,7 @@ class _ProfileTab extends StatelessWidget {
               children: [
                 ListTile(
                   leading: const Icon(Icons.settings),
-                  title: const Text('Settings'),
+                  title: Text(AppLocalizations.of(context)!.settings),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     Navigator.push(
@@ -602,7 +603,7 @@ class _ProfileTab extends StatelessWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.help),
-                  title: const Text('Help & Support'),
+                  title: Text(AppLocalizations.of(context)!.helpSupport),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     // TODO: Implement help
@@ -611,7 +612,7 @@ class _ProfileTab extends StatelessWidget {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.logout),
-                  title: const Text('Sign Out'),
+                  title: Text(AppLocalizations.of(context)!.signOut),
                   onTap: () async {
                     await FirebaseAuth.instance.signOut();
                   },

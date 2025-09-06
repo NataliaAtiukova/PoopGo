@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../models/order.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../widgets/order_list_tile.dart';
 
 class OpenRequestsScreen extends StatelessWidget {
@@ -13,7 +14,7 @@ class OpenRequestsScreen extends StatelessWidget {
     final firestore = context.read<FirestoreService>();
     final auth = context.read<AuthService>();
     return Scaffold(
-      appBar: AppBar(title: const Text('Open Requests')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.openRequests)),
       body: StreamBuilder<List<Order>>(
         stream: firestore.streamOpenOrders(),
         builder: (context, snapshot) {
@@ -59,4 +60,3 @@ class OpenRequestsScreen extends StatelessWidget {
     );
   }
 }
-

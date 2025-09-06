@@ -4,6 +4,7 @@ import '../logic/order_status_handler.dart';
 import '../services/firebase_service.dart';
 import '../widgets/service_fee_modal.dart';
 import '../utils/money.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../screens/shared/chat_screen.dart';
 
 class ContactUnlockWidget extends StatefulWidget {
@@ -88,7 +89,7 @@ class _ContactUnlockWidgetState extends State<ContactUnlockWidget> {
                       widget.onUnlocked?.call();
                     }
                   },
-                  child: const Text('Pay Now'),
+                  child: Text(AppLocalizations.of(context)!.payNow),
                 ),
               ),
           ],
