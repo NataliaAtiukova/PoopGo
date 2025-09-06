@@ -5,6 +5,7 @@ import '../../services/firebase_service.dart';
 import '../shared/chat_screen.dart';
 import 'order_edit_screen.dart';
 import '../../widgets/payment_method_selector.dart';
+import '../../widgets/service_fee_modal.dart';
 
 class OrderStatusScreen extends StatefulWidget {
   final String orderId;
@@ -28,6 +29,15 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     final order = await FirebaseService.getOrderById(widget.orderId);
     if (mounted) {
       setState(() => _order = order);
+    }
+    if (mounted && _order != null && _order!.status == OrderStatus.completed && !_order!.serviceFeePaid) {
+      // Prompt to pay service fee when completed and not paid
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (mounted) {
+        await showServiceFeeModal(context, _order!);
+        final refreshed = await FirebaseService.getOrderById(widget.orderId);
+        if (mounted) setState(() => _order = refreshed);
+      }
     }
   }
 
@@ -62,8 +72,17 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             ),
           if (_order!.providerId != null)
             IconButton(
-              icon: const Icon(Icons.chat),
-              onPressed: () {
+              icon: Icon(
+                Icons.chat,
+                color: _shouldLockContact() ? Colors.grey : null,
+              ),
+              onPressed: () async {
+                if (_shouldLockContact()) {
+                  await showServiceFeeModal(context, _order!);
+                  final refreshed = await FirebaseService.getOrderById(widget.orderId);
+                  if (mounted) setState(() => _order = refreshed);
+                  return;
+                }
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -216,8 +235,17 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.chat),
-                        onPressed: () {
+                        icon: Icon(
+                          Icons.chat,
+                          color: _shouldLockContact() ? Colors.grey : null,
+                        ),
+                        onPressed: () async {
+                          if (_shouldLockContact()) {
+                            await showServiceFeeModal(context, _order!);
+                            final refreshed = await FirebaseService.getOrderById(widget.orderId);
+                            if (mounted) setState(() => _order = refreshed);
+                            return;
+                          }
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -251,17 +279,23 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                       const Divider(),
                       _buildPaymentRow('Provider Share', '${_order!.price.toStringAsFixed(0)} ₽ (100%)', Icons.person),
                       const Divider(),
-                      _buildPaymentRow('Platform Fee', '0 ₽ (0%)', Icons.business),
+                      _buildPaymentRow('Service Fee (10%)', '${(_order!.price * 0.10).toStringAsFixed(0)} ₽', Icons.business),
                       const Divider(),
                       _buildPaymentStatus(),
-                      if (!_order!.isPaid) ...[
+                      const SizedBox(height: 8),
+                      _buildServiceFeeStatus(),
+                      if (!_order!.serviceFeePaid) ...[
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: _showPaymentDialog,
+                            onPressed: () async {
+                              await showServiceFeeModal(context, _order!);
+                              final refreshed = await FirebaseService.getOrderById(widget.orderId);
+                              if (mounted) setState(() => _order = refreshed);
+                            },
                             icon: const Icon(Icons.payment),
-                            label: const Text('Mark as Paid'),
+                            label: const Text('Pay Service Fee'),
                           ),
                         ),
                       ],
@@ -377,6 +411,12 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
+  bool _shouldLockContact() {
+    // Lock contact access only when order is completed and service fee not paid
+    if (_order == null) return false;
+    return _order!.status == OrderStatus.completed && !_order!.serviceFeePaid;
+  }
+
   Widget _buildPaymentRow(String label, String value, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -440,6 +480,45 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServiceFeeStatus() {
+    final paid = _order!.serviceFeePaid;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(
+            paid ? Icons.verified : Icons.lock_clock,
+            color: paid ? Colors.green : Colors.orange,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Service Fee',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[400],
+                  ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: paid ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              paid ? 'Paid' : 'Pending',
+              style: TextStyle(
+                color: paid ? Colors.green : Colors.orange,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          )
         ],
       ),
     );

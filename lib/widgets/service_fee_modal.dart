@@ -1,0 +1,129 @@
+import 'package:flutter/material.dart';
+
+import '../models/order.dart';
+import '../services/payment_config.dart';
+import '../services/firebase_service.dart';
+import '../screens/payment/cloudpayments_webview.dart';
+
+class ServiceFeeModal extends StatelessWidget {
+  final Order order;
+
+  const ServiceFeeModal({super.key, required this.order});
+
+  double _feeAmount() {
+    final raw = order.price * PaymentConfig.serviceFeePercent;
+    return double.parse(raw.toStringAsFixed(2));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final amount = _feeAmount();
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF0F1115),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.lock_outline, color: Colors.white70),
+              const SizedBox(width: 8),
+              Text(
+                'Service Commission',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'To access the Provider\'s contact and finalize the payment, please pay the 10% service commission.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF151923),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF1F2430)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.attach_money, color: Colors.lightBlue[300]),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Service Fee (10%)',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                  ),
+                ),
+                Text(
+                  '₽${amount.toStringAsFixed(2)}',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.lightBlue[300], fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1976D2),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                final result = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => CloudPaymentsWebView(
+                      orderId: order.id,
+                      amount: amount,
+                      customerAccountId: order.customerId,
+                      description: 'Service commission for order ${order.id}',
+                    ),
+                  ),
+                );
+                if (result == true) {
+                  final updated = order.copyWith(serviceFeePaid: true, updatedAt: DateTime.now());
+                  await FirebaseService.updateOrder(updated);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Service fee paid successfully'), backgroundColor: Colors.green),
+                    );
+                  }
+                } else if (result == false) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Payment cancelled or failed'), backgroundColor: Colors.red),
+                    );
+                  }
+                }
+              },
+              icon: const Icon(Icons.payment),
+              label: const Text('Pay Service Fee'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Future<void> showServiceFeeModal(BuildContext context, Order order) async {
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => ServiceFeeModal(order: order),
+  );
+}
+
