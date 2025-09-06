@@ -41,7 +41,7 @@ class ServiceFeeModal extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'To access the Provider\'s contact and finalize the payment, please pay the 10% service commission.',
+            'Your order has been accepted. To connect with the provider, please pay the 10% service commission.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
           ),
           const SizedBox(height: 16),
@@ -112,6 +112,26 @@ class ServiceFeeModal extends StatelessWidget {
               label: const Text('Pay Service Fee'),
             ),
           ),
+          if (PaymentConfig.enablePaymentSimulation) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  final updated = order.copyWith(serviceFeePaid: true, updatedAt: DateTime.now());
+                  await FirebaseService.updateOrder(updated);
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Service fee (simulated) paid'), backgroundColor: Colors.green),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.bug_report),
+                label: const Text('Simulate Payment (Test)'),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -126,4 +146,3 @@ Future<void> showServiceFeeModal(BuildContext context, Order order) async {
     builder: (_) => ServiceFeeModal(order: order),
   );
 }
-

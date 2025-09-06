@@ -69,11 +69,7 @@ class PaymentMethodDisplay extends StatelessWidget {
           icon: Icons.money,
           color: Colors.green,
         );
-      case 'bank transfer':
-        return PaymentMethodData(
-          icon: Icons.account_balance,
-          color: Colors.grey,
-        );
+      // Bank transfer removed from available options
       case 'card on completion':
         return PaymentMethodData(
           icon: Icons.credit_card,
@@ -97,5 +93,4 @@ class PaymentMethodData {
     required this.color,
   });
 }
-
 

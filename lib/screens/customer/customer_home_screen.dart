@@ -299,6 +299,22 @@ class _HomeTab extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         PriceDisplay(price: order.price, showLabel: false),
+                        const SizedBox(width: 8),
+                        if (order.serviceFeePaid)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              'Commission paid',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ),
                       ],
                     ),
                   ],
