@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
@@ -83,7 +84,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.signUp)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -92,47 +93,47 @@ class _SignupScreenState extends State<SignupScreen> {
             children: [
               TextFormField(
                 controller: _name,
-                decoration: const InputDecoration(labelText: 'Full Name'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.fullNameLabel),
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _phone,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.phoneNumberLabel),
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 12),
               if (_role == UserRole.provider) ...[
                 TextFormField(
                   controller: _company,
-                  decoration: const InputDecoration(labelText: 'Company Name (optional)'),
+                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.companyNameOptional),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _vehicle,
-                  decoration: const InputDecoration(labelText: 'Vehicle Info (optional)'),
+                  decoration: InputDecoration(labelText: AppLocalizations.of(context)!.vehicleInfoOptional),
                 ),
                 const SizedBox(height: 12),
               ],
               TextFormField(
                 controller: _email,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.emailLabel),
                 keyboardType: TextInputType.emailAddress,
-                validator: (v) => (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
+                validator: (v) => (v == null || !v.contains('@')) ? AppLocalizations.of(context)!.enterValidEmail : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _password,
-                decoration: const InputDecoration(labelText: 'Password'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.passwordLabel),
                 obscureText: true,
-                validator: (v) => (v == null || v.length < 6) ? 'Min 6 chars' : null,
+                validator: (v) => (v == null || v.length < 6) ? AppLocalizations.of(context)!.min6Chars : null,
               ),
               const SizedBox(height: 16),
               SegmentedButton<UserRole>(
-                segments: const [
-                  ButtonSegment(value: UserRole.customer, label: Text('Customer'), icon: Icon(Icons.person)),
-                  ButtonSegment(value: UserRole.provider, label: Text('Provider'), icon: Icon(Icons.local_shipping)),
+                segments: [
+                  ButtonSegment(value: UserRole.customer, label: Text(AppLocalizations.of(context)!.roleCustomer), icon: const Icon(Icons.person)),
+                  ButtonSegment(value: UserRole.provider, label: Text(AppLocalizations.of(context)!.roleProvider), icon: const Icon(Icons.local_shipping)),
                 ],
                 selected: {_role},
                 onSelectionChanged: (s) => setState(() => _role = s.first),
@@ -142,12 +143,12 @@ class _SignupScreenState extends State<SignupScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _loading ? null : _submit,
-                  child: _loading ? const CircularProgressIndicator() : const Text('Create Account'),
+                  child: _loading ? const CircularProgressIndicator() : Text(AppLocalizations.of(context)!.createAccount),
                 ),
               ),
               TextButton(
                 onPressed: () => Navigator.pushReplacementNamed(context, Routes.login),
-                child: const Text('Already have an account? Log in'),
+                child: Text(AppLocalizations.of(context)!.alreadyHaveAccountLogin),
               )
             ],
           ),

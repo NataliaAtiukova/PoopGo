@@ -33,14 +33,14 @@ class ServiceFeeModal extends StatelessWidget {
               const Icon(Icons.lock_outline, color: Colors.white70),
               const SizedBox(width: 8),
               Text(
-                'Service Commission',
+                AppLocalizations.of(context)!.paymentSummary,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            'Your order has been accepted. To connect with the provider, please pay the 10% service commission.',
+            AppLocalizations.of(context)!.serviceCommissionIntro,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
           ),
           const SizedBox(height: 16),
@@ -125,13 +125,13 @@ class ServiceFeeModal extends StatelessWidget {
                     await FirebaseService.updateOrder(updated);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Service fee paid successfully'), backgroundColor: Colors.green),
+                        SnackBar(content: Text(AppLocalizations.of(context)!.serviceFeePaidSuccessfully), backgroundColor: Colors.green),
                       );
                     }
                   } else if (result == false) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Payment cancelled or failed'), backgroundColor: Colors.red),
+                        SnackBar(content: Text(AppLocalizations.of(context)!.paymentFailedOrCancelled), backgroundColor: Colors.red),
                       );
                     }
                   }
@@ -151,12 +151,12 @@ class ServiceFeeModal extends StatelessWidget {
                   if (context.mounted) {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Service fee (simulated) paid'), backgroundColor: Colors.green),
+                      SnackBar(content: Text(AppLocalizations.of(context)!.serviceFeePaidSuccessfully), backgroundColor: Colors.green),
                     );
                   }
                 },
                 icon: const Icon(Icons.bug_report),
-                label: const Text('Simulate Payment (Test)'),
+                label: Text(AppLocalizations.of(context)!.simulatePayment),
               ),
             ),
           ],

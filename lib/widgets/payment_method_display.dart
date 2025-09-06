@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PaymentMethodDisplay extends StatelessWidget {
   final String? paymentMethod;
@@ -26,7 +27,7 @@ class PaymentMethodDisplay extends StatelessWidget {
           if (showLabel) ...[
             const SizedBox(width: 4),
             Text(
-              'No method specified',
+              AppLocalizations.of(context)!.method,
               style: TextStyle(
                 color: Colors.grey[400],
                 fontSize: 12,
@@ -93,4 +94,3 @@ class PaymentMethodData {
     required this.color,
   });
 }
-

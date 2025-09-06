@@ -10,6 +10,7 @@ import '../shared/chat_screen.dart';
 import 'provider_job_history_screen.dart';
 import '../shared/profile_settings_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../utils/l10n.dart';
 
 class ProviderHomeScreen extends StatefulWidget {
   const ProviderHomeScreen({super.key});
@@ -171,13 +172,13 @@ class _AvailableJobsTab extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Date: ${_formatDate(order.requestedDate)}',
+              '${AppLocalizations.of(context)!.date}: ${_formatDate(order.requestedDate)}',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             if (order.notes != null && order.notes!.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                'Notes: ${order.notes}',
+                '${AppLocalizations.of(context)!.notes}: ${order.notes}',
                 style: Theme.of(context).textTheme.bodyMedium,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -224,8 +225,8 @@ class _AvailableJobsTab extends StatelessWidget {
       
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Order accepted successfully!'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.orderAcceptedSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -234,7 +235,7 @@ class _AvailableJobsTab extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error accepting order: $e'),
+            content: Text('${AppLocalizations.of(context)!.error}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -247,8 +248,8 @@ class _AvailableJobsTab extends StatelessWidget {
     // In a real app, you might want to track rejections
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Order rejected'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.orderRejected),
         ),
       );
     }
@@ -362,14 +363,14 @@ class _MyJobsTab extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Volume: ${order.volume}L',
+                '${AppLocalizations.of(context)!.volume}: ${order.volume}L',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 4),
               Row(
                 children: [
                   Text(
-                    'Date: ${_formatDate(order.requestedDate)}',
+                    '${AppLocalizations.of(context)!.date}: ${_formatDate(order.requestedDate)}',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(width: 8),
@@ -388,7 +389,7 @@ class _MyJobsTab extends StatelessWidget {
                     final name = data['fullName'] ?? data['name'] ?? 'Customer';
                     final phone = data['phone'] ?? '-';
                     return Text(
-                      'Customer: $name, $phone',
+                      '${AppLocalizations.of(context)!.customer}: $name, $phone',
                       style: Theme.of(context).textTheme.bodyMedium,
                     );
                   },
@@ -397,7 +398,7 @@ class _MyJobsTab extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'Method: ',
+                    '${AppLocalizations.of(context)!.method}: ',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   PaymentMethodDisplay(
@@ -409,12 +410,12 @@ class _MyJobsTab extends StatelessWidget {
               ),
               if (order.notes != null && order.notes!.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text(
-                  'Notes: ${order.notes}',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              Text(
+                '${AppLocalizations.of(context)!.notes}: ${order.notes}',
+                style: Theme.of(context).textTheme.bodyMedium,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
               ],
               const SizedBox(height: 12),
               Row(
@@ -479,21 +480,21 @@ class _MyJobsTab extends StatelessWidget {
       // Enforce linear flow and commission requirement
       if (newStatus == OrderStatus.onTheWay) {
         if (current.status != OrderStatus.accepted) {
-          await _showAlert(context, 'Invalid status', 'You must accept the order before starting the job.');
+          await _showAlert(context, AppLocalizations.of(context)!.invalidStatus, AppLocalizations.of(context)!.mustAcceptBeforeStart);
           return;
         }
         if (current.serviceFeePaid == false) {
           await _showAlert(
             context,
-            'Payment required',
-            'This order has not been paid for yet. Please wait for the customer to pay the service commission before proceeding.',
+            AppLocalizations.of(context)!.paymentRequired,
+            AppLocalizations.of(context)!.waitForCommission,
           );
           return;
         }
       }
       if (newStatus == OrderStatus.completed) {
         if (current.status != OrderStatus.onTheWay) {
-          await _showAlert(context, 'Invalid status', 'You can complete the job only after you are on the way.');
+          await _showAlert(context, AppLocalizations.of(context)!.invalidStatus, AppLocalizations.of(context)!.completeFlowHint);
           return;
         }
       }
@@ -524,7 +525,7 @@ class _MyJobsTab extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Status updated to ${newStatus.displayName}'),
+            content: Text('Status updated to ${orderStatusText(context, newStatus)}'),
             backgroundColor: Colors.green,
           ),
         );
@@ -533,7 +534,7 @@ class _MyJobsTab extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error updating status: $e'),
+            content: Text('${AppLocalizations.of(context)!.error}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -550,7 +551,7 @@ class _MyJobsTab extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(AppLocalizations.of(context)!.ok),
           ),
         ],
       ),
@@ -582,7 +583,7 @@ class _MyJobsTab extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Order Details',
+                AppLocalizations.of(context)!.orderDetails,
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 16),
@@ -592,12 +593,12 @@ class _MyJobsTab extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                                          _buildDetailRow(context, 'Address', order.address, Icons.location_on),
-                    _buildDetailRow(context, 'Volume', '${order.volume}L', Icons.water_drop),
-                    _buildDetailRow(context, 'Date', _formatDate(order.requestedDate), Icons.calendar_today),
-                    _buildDetailRow(context, 'Status', order.status.displayName, Icons.info),
+                    _buildDetailRow(context, AppLocalizations.of(context)!.address, order.address, Icons.location_on),
+                    _buildDetailRow(context, AppLocalizations.of(context)!.volume, '${order.volume}L', Icons.water_drop),
+                    _buildDetailRow(context, AppLocalizations.of(context)!.date, _formatDate(order.requestedDate), Icons.calendar_today),
+                    _buildDetailRow(context, AppLocalizations.of(context)!.orderStatus, orderStatusText(context, order.status), Icons.info),
                     if (order.notes != null && order.notes!.isNotEmpty)
-                      _buildDetailRow(context, 'Notes', order.notes!, Icons.note),
+                      _buildDetailRow(context, AppLocalizations.of(context)!.notes, order.notes!, Icons.note),
                     ],
                   ),
                 ),

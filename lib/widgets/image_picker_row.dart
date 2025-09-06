@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ImagePickerRow extends StatefulWidget {
@@ -37,12 +38,12 @@ class _ImagePickerRowState extends State<ImagePickerRow> {
                 )),
             OutlinedButton.icon(
               icon: const Icon(Icons.photo_camera),
-              label: const Text('Camera'),
+              label: Text(AppLocalizations.of(context)!.camera),
               onPressed: () => _pick(ImageSource.camera),
             ),
             OutlinedButton.icon(
               icon: const Icon(Icons.photo_library),
-              label: const Text('Gallery'),
+              label: Text(AppLocalizations.of(context)!.gallery),
               onPressed: () => _pick(ImageSource.gallery),
             ),
           ],
@@ -51,4 +52,3 @@ class _ImagePickerRowState extends State<ImagePickerRow> {
     );
   }
 }
-

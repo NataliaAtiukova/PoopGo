@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class BookingFormScreen extends StatefulWidget {
   const BookingFormScreen({super.key});
@@ -124,15 +125,15 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Success!'),
-            content: const Text('Your septic pickup request has been submitted successfully.'),
+            title: Text(AppLocalizations.of(context)!.success),
+            content: Text(AppLocalizations.of(context)!.orderSubmittedMessage),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.pop(context);
                 },
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context)!.ok),
               ),
             ],
           ),
@@ -143,12 +144,12 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to submit order: ${e.toString()}'),
+            title: Text(AppLocalizations.of(context)!.error),
+            content: Text('${AppLocalizations.of(context)!.error}: ${e.toString()}'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context)!.ok),
               ),
             ],
           ),
@@ -163,7 +164,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Request Pickup'),
+        title: Text(AppLocalizations.of(context)!.requestPickup),
       ),
       body: Form(
         key: _formKey,
@@ -175,9 +176,9 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               // Address
               TextFormField(
                 controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Address',
-                  hintText: 'Enter the pickup address',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.address,
+                  hintText: AppLocalizations.of(context)!.address,
                   prefixIcon: Icon(Icons.location_on),
                 ),
                 maxLines: 2,
@@ -207,7 +208,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Date',
+                              AppLocalizations.of(context)!.date,
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: Colors.grey[400],
                               ),
@@ -236,7 +237,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Time',
+                              AppLocalizations.of(context)!.time,
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: Colors.grey[400],
                               ),
@@ -259,9 +260,9 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               // Volume
               TextFormField(
                 controller: _volumeController,
-                decoration: const InputDecoration(
-                  labelText: 'Tank Volume (Liters)',
-                  hintText: 'Enter tank volume in liters',
+                decoration: InputDecoration(
+                  labelText: '${AppLocalizations.of(context)!.volume} (L)',
+                  hintText: '${AppLocalizations.of(context)!.volume} (L)',
                   prefixIcon: Icon(Icons.water_drop),
                 ),
                 keyboardType: TextInputType.number,
@@ -282,9 +283,9 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               // Price
               TextFormField(
                 controller: _priceController,
-                decoration: const InputDecoration(
-                  labelText: 'Your price offer (₽)',
-                  hintText: 'Enter your price offer in RUB',
+                decoration: InputDecoration(
+                  labelText: '${AppLocalizations.of(context)!.totalPrice} (₽)',
+                  hintText: '${AppLocalizations.of(context)!.totalPrice} (₽)',
                   prefixIcon: Icon(Icons.attach_money),
                 ),
                 keyboardType: TextInputType.number,
@@ -305,9 +306,9 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               // Payment Method
               DropdownButtonFormField<String>(
                 value: _selectedPaymentMethod,
-                decoration: const InputDecoration(
-                  labelText: 'Payment Method',
-                  prefixIcon: Icon(Icons.payment),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.choosePaymentMethod,
+                  prefixIcon: const Icon(Icons.payment),
                 ),
                 items: const [
                   DropdownMenuItem(
@@ -348,7 +349,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please select a payment method';
+                    return AppLocalizations.of(context)!.choosePaymentMethod;
                   }
                   return null;
                 },
@@ -359,9 +360,9 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               // Notes
               TextFormField(
                 controller: _notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Notes (Optional)',
-                  hintText: 'Any additional information...',
+                decoration: InputDecoration(
+                  labelText: '${AppLocalizations.of(context)!.notes} (optional)',
+                  hintText: AppLocalizations.of(context)!.notes,
                   prefixIcon: Icon(Icons.note),
                 ),
                 maxLines: 3,
@@ -381,14 +382,14 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                           const Icon(Icons.photo_camera),
                           const SizedBox(width: 8),
                           Text(
-                            'Photos (Optional)',
+                            '${AppLocalizations.of(context)!.photos} (optional)',
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Add photos of your septic tank or access area',
+                        AppLocalizations.of(context)!.addPhotosHint,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.grey[400],
                         ),
@@ -397,7 +398,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                       OutlinedButton.icon(
                         onPressed: _pickImages,
                         icon: const Icon(Icons.add_photo_alternate),
-                        label: const Text('Add Photos'),
+                        label: Text(AppLocalizations.of(context)!.addPhotos),
                       ),
                       if (_selectedImages.isNotEmpty) ...[
                         const SizedBox(height: 16),
@@ -470,7 +471,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Submit Request'),
+                    : Text(AppLocalizations.of(context)!.submitRequest),
               ),
               
               const SizedBox(height: 16),
@@ -481,5 +482,3 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
     );
   }
 }
-
-

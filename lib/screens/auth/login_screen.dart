@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../services/firebase_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../models/user_profile.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -60,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final role = await FirebaseService.getUserRole(credential.user!.uid);
       if (role == null) {
         await FirebaseAuth.instance.signOut();
-        _showErrorDialog('User role not found. Please contact support.');
+        _showErrorDialog(AppLocalizations.of(context)!.userRoleNotFound);
       }
     }
   }
@@ -113,12 +114,12 @@ class _LoginScreenState extends State<LoginScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Error'),
+        title: Text(AppLocalizations.of(context)!.error),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(AppLocalizations.of(context)!.ok),
           ),
         ],
       ),
@@ -174,11 +175,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: _buildRoleCard('customer', 'Customer', Icons.person),
+                        child: _buildRoleCard('customer', AppLocalizations.of(context)!.roleCustomer, Icons.person),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: _buildRoleCard('provider', 'Provider', Icons.local_shipping),
+                        child: _buildRoleCard('provider', AppLocalizations.of(context)!.roleProvider, Icons.local_shipping),
                       ),
                     ],
                   ),
@@ -222,17 +223,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Email field
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.emailLabel,
+                    prefixIcon: const Icon(Icons.email_outlined),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter your email';
+                      return AppLocalizations.of(context)!.pleaseEnterEmail;
                     }
                     if (!value.contains('@')) {
-                      return 'Please enter a valid email';
+                      return AppLocalizations.of(context)!.pleaseEnterValidEmail;
                     }
                     return null;
                   },
@@ -242,17 +243,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Password field
                 TextFormField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock_outline),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.passwordLabel,
+                    prefixIcon: const Icon(Icons.lock_outline),
                   ),
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
+                      return AppLocalizations.of(context)!.pleaseEnterPassword;
                     }
                     if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                      return AppLocalizations.of(context)!.passwordMin;
                     }
                     return null;
                   },
@@ -268,7 +269,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Text(_isLogin ? 'Sign In' : 'Sign Up'),
+                      : Text(_isLogin ? AppLocalizations.of(context)!.signIn : AppLocalizations.of(context)!.signUp),
                 ),
                 
                 const SizedBox(height: 16),
@@ -282,8 +283,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: Text(
                     _isLogin
-                        ? "Don't have an account? Sign Up"
-                        : "Already have an account? Sign In",
+                        ? AppLocalizations.of(context)!.dontHaveAccount
+                        : AppLocalizations.of(context)!.alreadyHaveAccount,
                   ),
                 ),
                 

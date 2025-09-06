@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/order.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../services/firebase_service.dart';
 
 class OrderEditScreen extends StatefulWidget {
@@ -174,7 +176,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Order'),
+        title: Text(AppLocalizations.of(context)!.editOrder),
         actions: [
           if (widget.order.isEditable)
             TextButton(
@@ -404,7 +406,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                 } : null,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please select a payment method';
+                    return AppLocalizations.of(context)!.choosePaymentMethod;
                   }
                   return null;
                 },
@@ -415,10 +417,10 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
               // Notes
               TextFormField(
                 controller: _notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Notes (Optional)',
-                  hintText: 'Any additional information...',
-                  prefixIcon: Icon(Icons.note),
+                decoration: InputDecoration(
+                  labelText: '${AppLocalizations.of(context)!.notes} (optional)',
+                  hintText: AppLocalizations.of(context)!.notes,
+                  prefixIcon: const Icon(Icons.note),
                 ),
                 maxLines: 3,
                 readOnly: !widget.order.isEditable,
@@ -438,7 +440,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                           const Icon(Icons.photo_camera),
                           const SizedBox(width: 8),
                           Text(
-                            'Photos (Optional)',
+                            '${AppLocalizations.of(context)!.photos} (optional)',
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ],
@@ -455,7 +457,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                         OutlinedButton.icon(
                           onPressed: _pickImages,
                           icon: const Icon(Icons.add_photo_alternate),
-                          label: const Text('Add Photos'),
+                          label: Text(AppLocalizations.of(context)!.addPhotos),
                         ),
                       ],
                       if (_selectedImages.isNotEmpty) ...[
@@ -531,7 +533,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Update Order'),
+                      : Text(AppLocalizations.of(context)!.updateOrder),
                 ),
               
               const SizedBox(height: 16),

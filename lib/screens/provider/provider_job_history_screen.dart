@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
@@ -12,7 +13,7 @@ class ProviderJobHistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     return Scaffold(
-      appBar: AppBar(title: const Text('Completed Jobs')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.navHistory)),
       body: ProviderJobHistoryList(providerId: uid),
     );
   }
@@ -33,7 +34,7 @@ class ProviderJobHistoryList extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text('${AppLocalizations.of(context)!.error}: ${snapshot.error}'));
         }
         final orders = snapshot.data ?? [];
         if (orders.isEmpty) {
@@ -43,7 +44,7 @@ class ProviderJobHistoryList extends StatelessWidget {
               children: [
                 Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[500]),
                 const SizedBox(height: 12),
-                const Text('No completed jobs yet'),
+                Text(AppLocalizations.of(context)!.noOrdersYet),
               ],
             ),
           );
@@ -81,7 +82,7 @@ class _CompletedOrderTile extends StatelessWidget {
             const SizedBox(height: 6),
             Text('Completed on ${_formatDate(order.updatedAt ?? order.createdAt)}', style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 6),
-            Text('Volume: ${order.volume}L', style: Theme.of(context).textTheme.bodyMedium),
+            Text('${AppLocalizations.of(context)!.volume}: ${order.volume}L', style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),
       ),

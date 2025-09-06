@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapPreview extends StatelessWidget {
@@ -16,7 +17,7 @@ class MapPreview extends StatelessWidget {
           color: Colors.grey.shade200,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Text('No location selected'),
+        child: Text(AppLocalizations.of(context)!.noLocationSelected),
       );
     }
     final pos = LatLng(lat!, lng!);
@@ -35,4 +36,3 @@ class MapPreview extends StatelessWidget {
     );
   }
 }
-

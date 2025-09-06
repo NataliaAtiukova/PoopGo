@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
@@ -40,13 +41,13 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
       if (url != null) 'truckPhotoUrl': url,
     }, SetOptions(merge: true));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdated)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Provider Profile')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.providerProfile)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
@@ -67,12 +68,12 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                     if (x != null) setState(() => _truckPhoto = File(x.path));
                   },
                   icon: const Icon(Icons.photo_library),
-                  label: const Text('Pick Truck Photo'),
+                  label: Text(AppLocalizations.of(context)!.pickTruckPhoto),
                 ),
               ],
             ),
             const SizedBox(height: 20),
-            ElevatedButton(onPressed: _save, child: const Text('Save')),
+            ElevatedButton(onPressed: _save, child: Text(AppLocalizations.of(context)!.save)),
           ],
         ),
       ),

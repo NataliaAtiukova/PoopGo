@@ -55,7 +55,7 @@ class _ContactUnlockWidgetState extends State<ContactUnlockWidget> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Your order has been accepted by the provider. To continue and access their contact details, please pay the 10% service commission.',
+                    AppLocalizations.of(context)!.unlockContactMessage,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
@@ -67,12 +67,12 @@ class _ContactUnlockWidgetState extends State<ContactUnlockWidget> {
               children: [
                 Expanded(
                   child: Text(
-                    'Total: ${_order.price.toStringAsFixed(2)} ₽',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                  '${AppLocalizations.of(context)!.totalPrice}: ${_order.price.toStringAsFixed(2)} ₽',
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-                Text(
-                  'Fee (10%): ${calculateServiceFee(_order.price).toStringAsFixed(2)} ₽',
+              ),
+              Text(
+                  '${AppLocalizations.of(context)!.serviceFee10}: ${calculateServiceFee(_order.price).toStringAsFixed(2)} ₽',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
