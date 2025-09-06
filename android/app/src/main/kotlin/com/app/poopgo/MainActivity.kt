@@ -1,4 +1,4 @@
-package com.example.poopgo
+package com.app.poopgo
 
 import io.flutter.embedding.android.FlutterActivity
 
