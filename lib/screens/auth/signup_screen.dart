@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/messaging_service.dart';
-import '../../models/user_profile.dart';
 import '../../routes.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -22,7 +21,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _phone = TextEditingController();
   final _company = TextEditingController();
   final _vehicle = TextEditingController();
-  UserRole _role = UserRole.customer;
+  String _role = 'customer';
   bool _loading = false;
 
   @override
@@ -47,11 +46,9 @@ class _SignupScreenState extends State<SignupScreen> {
         email: _email.text.trim(),
         password: _password.text,
         displayName: _name.text.trim(),
-        role: _role,
-        firestore: firestore,
       );
       // Save contact data
-      if (_role == UserRole.provider) {
+      if (_role == 'provider') {
         await firestore.saveProviderProfile(
           uid: auth.currentUser!.uid,
           fullName: _name.text.trim(),
@@ -70,12 +67,14 @@ class _SignupScreenState extends State<SignupScreen> {
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(
         context,
-        _role == UserRole.customer ? Routes.customerHome : Routes.providerHome,
+        _role == 'customer' ? Routes.customerHome : Routes.providerHome,
         (_) => false,
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Signup failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${AppLocalizations.of(context)!.signupFailed}: $e')),
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -94,17 +93,17 @@ class _SignupScreenState extends State<SignupScreen> {
               TextFormField(
                 controller: _name,
                 decoration: InputDecoration(labelText: AppLocalizations.of(context)!.fullNameLabel),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.pleaseEnterName : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _phone,
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(labelText: AppLocalizations.of(context)!.phoneNumberLabel),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.pleaseEnterPhoneNumber : null,
               ),
               const SizedBox(height: 12),
-              if (_role == UserRole.provider) ...[
+              if (_role == 'provider') ...[
                 TextFormField(
                   controller: _company,
                   decoration: InputDecoration(labelText: AppLocalizations.of(context)!.companyNameOptional),
@@ -130,10 +129,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 validator: (v) => (v == null || v.length < 6) ? AppLocalizations.of(context)!.min6Chars : null,
               ),
               const SizedBox(height: 16),
-              SegmentedButton<UserRole>(
+              SegmentedButton<String>(
                 segments: [
-                  ButtonSegment(value: UserRole.customer, label: Text(AppLocalizations.of(context)!.roleCustomer), icon: const Icon(Icons.person)),
-                  ButtonSegment(value: UserRole.provider, label: Text(AppLocalizations.of(context)!.roleProvider), icon: const Icon(Icons.local_shipping)),
+                  ButtonSegment(value: 'customer', label: Text(AppLocalizations.of(context)!.roleCustomer), icon: const Icon(Icons.person)),
+                  ButtonSegment(value: 'provider', label: Text(AppLocalizations.of(context)!.roleProvider), icon: const Icon(Icons.local_shipping)),
                 ],
                 selected: {_role},
                 onSelectionChanged: (s) => setState(() => _role = s.first),

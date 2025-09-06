@@ -8,9 +8,7 @@ import '../../widgets/price_display.dart';
 import 'booking_form_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'order_status_screen.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../utils/l10n.dart';
-import '../shared/chat_screen.dart';
 import '../shared/profile_settings_screen.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
@@ -22,6 +20,8 @@ class CustomerHomeScreen extends StatefulWidget {
 
 class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   int _selectedIndex = 0;
+
+  void setTab(int index) => setState(() => _selectedIndex = index);
 
   @override
   Widget build(BuildContext context) {
@@ -146,12 +146,7 @@ class _HomeTab extends StatelessWidget {
                   AppLocalizations.of(context)!.trackOrders,
                   Icons.track_changes,
                   () {
-                    // Switch to orders tab
-                    if (context.findAncestorStateOfType<_CustomerHomeScreenState>() != null) {
-                      context.findAncestorStateOfType<_CustomerHomeScreenState>()!.setState(() {
-                        context.findAncestorStateOfType<_CustomerHomeScreenState>()!._selectedIndex = 1;
-                      });
-                    }
+                    context.findAncestorStateOfType<_CustomerHomeScreenState>()?.setTab(1);
                   },
                 ),
               ),
@@ -296,40 +291,55 @@ class _HomeTab extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          '${order.volume}L • ${_formatDate(order.requestedDate)}',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(width: 8),
-                        PriceDisplay(price: order.price, showLabel: false),
-                        const SizedBox(width: 8),
-                        if (order.serviceFeePaid)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              AppLocalizations.of(context)!.commissionPaid,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
+                    // Prevent horizontal overflow of meta row
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          Text(
+                            '${order.volume}L • ${_formatDate(order.requestedDate)}',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            softWrap: false,
                           ),
-                      ],
+                          const SizedBox(width: 8),
+                          PriceDisplay(price: order.price, showLabel: false),
+                          const SizedBox(width: 8),
+                          if (order.serviceFeePaid)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                AppLocalizations.of(context)!.commissionPaid,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              Text(
-                orderStatusText(context, order.status),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: _getStatusColor(order.status),
-                  fontWeight: FontWeight.w600,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  orderStatusText(context, order.status),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: _getStatusColor(order.status),
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
               ),
             ],
@@ -393,12 +403,12 @@ class _OrdersTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No orders yet',
+                  AppLocalizations.of(context)!.noOrdersYet,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Request your first septic pickup to get started!',
+                  AppLocalizations.of(context)!.firstOrderHint,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
@@ -466,14 +476,14 @@ class _OrdersTab extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Volume: ${order.volume}L',
+                '${AppLocalizations.of(context)!.volume}: ${order.volume}L',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 4),
               Row(
                 children: [
                   Text(
-                    'Date: ${_formatDate(order.requestedDate)}',
+                    '${AppLocalizations.of(context)!.date}: ${_formatDate(order.requestedDate)}',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(width: 8),
@@ -483,7 +493,7 @@ class _OrdersTab extends StatelessWidget {
               if (order.notes != null && order.notes!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(
-                  'Notes: ${order.notes}',
+                  '${AppLocalizations.of(context)!.notes}: ${order.notes}',
                   style: Theme.of(context).textTheme.bodyMedium,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -546,12 +556,12 @@ class _ProfileTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    user?.email ?? 'Unknown',
+                    user?.email ?? AppLocalizations.of(context)!.unknown,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Customer',
+                    AppLocalizations.of(context)!.roleCustomer,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                     ),

@@ -54,7 +54,7 @@ class _PaymentMethodSelectorState extends State<PaymentMethodSelector> {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       color: isSelected 
-          ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
           : null,
       child: ListTile(
         leading: _getPaymentIcon(method),
@@ -191,10 +191,10 @@ class PaymentConfirmationDialog extends StatelessWidget {
         children: [
           Text('${l.amount}: ${amount.toStringAsFixed(0)} ₽'),
           const SizedBox(height: 8),
-          Text('${l.methodLabel}: ${_getPaymentName(paymentMethod)}'),
+          Text('${l.methodLabel}: ${_getPaymentName(context, paymentMethod)}'),
           const SizedBox(height: 16),
           Text(
-            'This is a placeholder for future payment integration. In a real implementation, this would redirect to the payment gateway.',
+            l.paymentIntegrationPlaceholder,
             style: const TextStyle(fontStyle: FontStyle.italic),
           ),
         ],
@@ -212,16 +212,17 @@ class PaymentConfirmationDialog extends StatelessWidget {
     );
   }
 
-  String _getPaymentName(PaymentMethod method) {
+  String _getPaymentName(BuildContext context, PaymentMethod method) {
+    final l = AppLocalizations.of(context)!;
     switch (method) {
       case PaymentMethod.yoomoney:
-        return 'YooMoney';
+        return l.yoomoney;
       case PaymentMethod.sberpay:
-        return 'SberPay';
+        return l.sberpay;
       case PaymentMethod.tinkoff:
-        return 'Tinkoff';
+        return l.tinkoff;
       case PaymentMethod.cash:
-        return 'Cash Payment';
+        return l.cashPayment;
     }
   }
 }

@@ -85,7 +85,7 @@ class _AvailableJobsTab extends StatelessWidget {
         
         if (snapshot.hasError) {
           return Center(
-            child: Text('Error: ${snapshot.error}'),
+            child: Text('${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
           );
         }
         
@@ -108,7 +108,7 @@ class _AvailableJobsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'New requests will appear here when customers submit them.',
+                  AppLocalizations.of(context)!.newRequestsAppearHere,
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -219,8 +219,8 @@ class _AvailableJobsTab extends StatelessWidget {
       // Send notification to customer
       await FirebaseService.sendNotificationToUser(
         order.customerId,
-        'Order Accepted',
-        'A provider has accepted your septic pickup request.',
+        AppLocalizations.of(context)!.notifOrderAcceptedTitle,
+        AppLocalizations.of(context)!.notifOrderAcceptedBody,
       );
       
       if (context.mounted) {
@@ -276,7 +276,7 @@ class _MyJobsTab extends StatelessWidget {
         
         if (snapshot.hasError) {
           return Center(
-            child: Text('Error: ${snapshot.error}'),
+            child: Text('${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
           );
         }
         
@@ -294,12 +294,12 @@ class _MyJobsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No jobs yet',
+                  AppLocalizations.of(context)!.noJobsYet,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Accepted jobs will appear here.',
+                  AppLocalizations.of(context)!.acceptedJobsAppearHere,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
@@ -353,7 +353,7 @@ class _MyJobsTab extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    order.status.displayName,
+                    orderStatusText(context, order.status),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: _getStatusColor(order.status),
                       fontWeight: FontWeight.w600,
@@ -428,9 +428,9 @@ class _MyJobsTab extends StatelessWidget {
                         if (!canChat) {
                           showDialog(
                             context: context,
-                            builder: (context) => const AlertDialog(
-                              title: Text('Chat locked'),
-                              content: Text('Chat will become available after the customer pays the service commission.'),
+                            builder: (context) => AlertDialog(
+                              title: Text(AppLocalizations.of(context)!.chatLockedTitle),
+                              content: Text(AppLocalizations.of(context)!.chatLockedMessage),
                             ),
                           );
                           return;
@@ -507,12 +507,12 @@ class _MyJobsTab extends StatelessWidget {
       
       switch (newStatus) {
         case OrderStatus.onTheWay:
-          title = 'Provider On The Way';
-          body = 'Your provider is on the way to your location.';
+          title = AppLocalizations.of(context)!.notifOnTheWayTitle;
+          body = AppLocalizations.of(context)!.notifOnTheWayBody;
           break;
         case OrderStatus.completed:
-          title = 'Service Completed';
-          body = 'Your septic tank service has been completed.';
+          title = AppLocalizations.of(context)!.notifCompletedTitle;
+          body = AppLocalizations.of(context)!.notifCompletedBody;
           break;
         default:
           break;
@@ -525,7 +525,7 @@ class _MyJobsTab extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Status updated to ${orderStatusText(context, newStatus)}'),
+            content: Text(AppLocalizations.of(context)!.statusUpdatedTo(orderStatusText(context, newStatus))),
             backgroundColor: Colors.green,
           ),
         );
@@ -568,42 +568,71 @@ class _MyJobsTab extends StatelessWidget {
         minChildSize: 0.5,
         builder: (context, scrollController) => Container(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
+          child: StreamBuilder<Order?>(
+            stream: FirebaseService.streamOrderById(order.id),
+            builder: (context, snap) {
+              final o = snap.data ?? order;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                AppLocalizations.of(context)!.orderDetails,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                    _buildDetailRow(context, AppLocalizations.of(context)!.address, order.address, Icons.location_on),
-                    _buildDetailRow(context, AppLocalizations.of(context)!.volume, '${order.volume}L', Icons.water_drop),
-                    _buildDetailRow(context, AppLocalizations.of(context)!.date, _formatDate(order.requestedDate), Icons.calendar_today),
-                    _buildDetailRow(context, AppLocalizations.of(context)!.orderStatus, orderStatusText(context, order.status), Icons.info),
-                    if (order.notes != null && order.notes!.isNotEmpty)
-                      _buildDetailRow(context, AppLocalizations.of(context)!.notes, order.notes!, Icons.note),
-                    ],
+                  const SizedBox(height: 16),
+                  Text(
+                    AppLocalizations.of(context)!.orderDetails,
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                ),
-              ),
-            ],
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildDetailRow(context, AppLocalizations.of(context)!.address, o.address, Icons.location_on),
+                          _buildDetailRow(context, AppLocalizations.of(context)!.volume, '${o.volume}L', Icons.water_drop),
+                          _buildDetailRow(context, AppLocalizations.of(context)!.date, _formatDate(o.requestedDate), Icons.calendar_today),
+                          _buildDetailRow(context, AppLocalizations.of(context)!.orderStatus, orderStatusText(context, o.status), Icons.info),
+                          _buildDetailRow(context, AppLocalizations.of(context)!.totalPrice, '${o.price.toStringAsFixed(0)} ₽', Icons.attach_money),
+                          _buildDetailRow(context, AppLocalizations.of(context)!.paymentStatus, o.isPaid ? AppLocalizations.of(context)!.paid : AppLocalizations.of(context)!.pending, Icons.verified),
+                          _buildDetailRow(context, AppLocalizations.of(context)!.method, _paymentMethodText(context, o.paymentMethod), Icons.payment),
+                          if (o.notes != null && o.notes!.isNotEmpty)
+                            _buildDetailRow(context, AppLocalizations.of(context)!.notes, o.notes!, Icons.note),
+                          const SizedBox(height: 12),
+                          if (o.serviceFeePaid) FutureBuilder<Map<String, dynamic>?>(
+                            future: FirebaseService.getUserContact(o.customerId),
+                            builder: (context, contactSnap) {
+                              if (contactSnap.connectionState != ConnectionState.done) {
+                                return const SizedBox.shrink();
+                              }
+                              final data = contactSnap.data ?? {};
+                              final name = data['fullName'] ?? data['name'] ?? '-';
+                              final phone = data['phone'] ?? '-';
+                              return Card(
+                                child: ListTile(
+                                  leading: const Icon(Icons.person),
+                                  title: Text(name),
+                                  subtitle: Text(phone),
+                                  trailing: const Icon(Icons.phone),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -642,6 +671,20 @@ class _MyJobsTab extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _paymentMethodText(BuildContext context, String? method) {
+    if (method == null || method.isEmpty) return '-';
+    switch (method.toLowerCase()) {
+      case 'cash':
+        return AppLocalizations.of(context)!.cashPayment;
+      case 'bank transfer':
+        return AppLocalizations.of(context)!.bankTransfer;
+      case 'card on completion':
+        return AppLocalizations.of(context)!.cardOnCompletion;
+      default:
+        return method;
+    }
   }
 
   Color _getStatusColor(OrderStatus status) {
@@ -694,12 +737,12 @@ class _ProfileTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    user?.email ?? 'Unknown',
+                    user?.email ?? AppLocalizations.of(context)!.unknown,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Provider',
+                    AppLocalizations.of(context)!.roleProvider,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                     ),

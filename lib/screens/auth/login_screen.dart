@@ -149,13 +149,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
                 
                 Text(
-                  'PoopGo',
+                  AppLocalizations.of(context)!.appTitle,
                   style: Theme.of(context).textTheme.headlineLarge,
                   textAlign: TextAlign.center,
                 ),
                 
                 Text(
-                  'Septic Tank Services',
+                  AppLocalizations.of(context)!.appSubtitle,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Colors.grey[400],
                   ),
@@ -167,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Role Selection (only for signup)
                 if (!_isLogin) ...[
                   Text(
-                    'Select your role:',
+                    AppLocalizations.of(context)!.selectYourRole,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 16),
@@ -190,13 +190,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (!_isLogin) ...[
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: Icon(Icons.person_outline),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.fullNameLabel,
+                      prefixIcon: const Icon(Icons.person_outline),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your name';
+                        return AppLocalizations.of(context)!.pleaseEnterName;
                       }
                       return null;
                     },
@@ -205,14 +205,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   
                   TextFormField(
                     controller: _phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone Number',
-                      prefixIcon: Icon(Icons.phone_outlined),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.phoneNumberLabel,
+                      prefixIcon: const Icon(Icons.phone_outlined),
                     ),
                     keyboardType: TextInputType.phone,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your phone number';
+                        return AppLocalizations.of(context)!.pleaseEnterPhoneNumber;
                       }
                       return null;
                     },
@@ -310,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected 
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
               : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(

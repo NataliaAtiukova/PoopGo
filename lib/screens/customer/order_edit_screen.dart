@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../models/order.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../services/firebase_service.dart';
 
@@ -137,15 +135,15 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Success!'),
-            content: const Text('Your order has been updated successfully.'),
+            title: Text(AppLocalizations.of(context)!.success),
+            content: Text(AppLocalizations.of(context)!.orderUpdatedSuccessfully),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.pop(context);
                 },
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context)!.ok),
               ),
             ],
           ),
@@ -156,12 +154,12 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to update order: ${e.toString()}'),
+            title: Text(AppLocalizations.of(context)!.error),
+            content: Text(AppLocalizations.of(context)!.failedToUpdateOrder(e.toString())),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context)!.ok),
               ),
             ],
           ),
@@ -187,7 +185,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save'),
+                  : Text(AppLocalizations.of(context)!.save),
             ),
         ],
       ),
@@ -201,7 +199,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
               // Editability notice
               if (!widget.order.isEditable)
                 Card(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
@@ -230,16 +228,16 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
               // Address
               TextFormField(
                 controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Address',
-                  hintText: 'Enter the pickup address',
-                  prefixIcon: Icon(Icons.location_on),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.address,
+                  hintText: AppLocalizations.of(context)!.pleaseEnterPickupAddress,
+                  prefixIcon: const Icon(Icons.location_on),
                 ),
                 maxLines: 2,
                 readOnly: !widget.order.isEditable,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter the pickup address';
+                    return AppLocalizations.of(context)!.pleaseEnterPickupAddress;
                   }
                   return null;
                 },
@@ -263,7 +261,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Date',
+                              AppLocalizations.of(context)!.date,
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: Colors.grey[400],
                               ),
@@ -292,7 +290,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Time',
+                              AppLocalizations.of(context)!.time,
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: Colors.grey[400],
                               ),
@@ -315,20 +313,20 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
               // Volume
               TextFormField(
                 controller: _volumeController,
-                decoration: const InputDecoration(
-                  labelText: 'Tank Volume (Liters)',
-                  hintText: 'Enter tank volume in liters',
-                  prefixIcon: Icon(Icons.water_drop),
+                decoration: InputDecoration(
+                  labelText: '${AppLocalizations.of(context)!.volume} (L)',
+                  hintText: AppLocalizations.of(context)!.enterTankVolume,
+                  prefixIcon: const Icon(Icons.water_drop),
                 ),
                 keyboardType: TextInputType.number,
                 readOnly: !widget.order.isEditable,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter tank volume';
+                    return AppLocalizations.of(context)!.enterTankVolume;
                   }
                   final volume = double.tryParse(value);
                   if (volume == null || volume <= 0) {
-                    return 'Please enter a valid volume';
+                    return AppLocalizations.of(context)!.enterValidVolume;
                   }
                   return null;
                 },
@@ -339,20 +337,20 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
               // Price
               TextFormField(
                 controller: _priceController,
-                decoration: const InputDecoration(
-                  labelText: 'Your price offer (₽)',
-                  hintText: 'Enter your price offer in RUB',
-                  prefixIcon: Icon(Icons.attach_money),
+                decoration: InputDecoration(
+                  labelText: '${AppLocalizations.of(context)!.totalPrice} (₽)',
+                  hintText: AppLocalizations.of(context)!.enterPriceOffer,
+                  prefixIcon: const Icon(Icons.attach_money),
                 ),
                 keyboardType: TextInputType.number,
                 readOnly: !widget.order.isEditable,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter your price offer';
+                    return AppLocalizations.of(context)!.enterPriceOffer;
                   }
                   final price = double.tryParse(value);
                   if (price == null || price <= 0) {
-                    return 'Please enter a valid price';
+                    return AppLocalizations.of(context)!.enterValidPrice;
                   }
                   return null;
                 },
@@ -363,18 +361,18 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
               // Payment Method
               DropdownButtonFormField<String>(
                 value: _selectedPaymentMethod,
-                decoration: const InputDecoration(
-                  labelText: 'Payment Method',
-                  prefixIcon: Icon(Icons.payment),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.choosePaymentMethod,
+                  prefixIcon: const Icon(Icons.payment),
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: 'Cash',
                     child: Row(
                       children: [
                         Icon(Icons.money, color: Colors.green),
                         SizedBox(width: 8),
-                        Text('Cash'),
+                        Text(AppLocalizations.of(context)!.cashPayment),
                       ],
                     ),
                   ),
@@ -384,7 +382,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                       children: [
                         Icon(Icons.account_balance, color: Colors.grey),
                         SizedBox(width: 8),
-                        Text('Bank Transfer'),
+                        Text(AppLocalizations.of(context)!.bankTransfer),
                       ],
                     ),
                   ),
@@ -394,7 +392,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                       children: [
                         Icon(Icons.credit_card, color: Colors.blue),
                         SizedBox(width: 8),
-                        Text('Card on Completion'),
+                        Text(AppLocalizations.of(context)!.cardOnCompletion),
                       ],
                     ),
                   ),
@@ -418,7 +416,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
               TextFormField(
                 controller: _notesController,
                 decoration: InputDecoration(
-                  labelText: '${AppLocalizations.of(context)!.notes} (optional)',
+                  labelText: '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})',
                   hintText: AppLocalizations.of(context)!.notes,
                   prefixIcon: const Icon(Icons.note),
                 ),
@@ -447,7 +445,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Add photos of your septic tank or access area',
+                        AppLocalizations.of(context)!.addPhotosHint,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.grey[400],
                         ),

@@ -157,6 +157,12 @@ class FirebaseService {
     return null;
   }
 
+  static Stream<app_models.Order?> streamOrderById(String orderId) {
+    return _firestore.collection('orders').doc(orderId).snapshots().map(
+      (doc) => doc.exists ? app_models.Order.fromMap({...doc.data()!, 'id': doc.id}) : null,
+    );
+  }
+
   // Provider Profiles (separate collection)
   static Future<Map<String, dynamic>?> getProviderProfile(String providerId) async {
     final doc = await _firestore.collection('providers').doc(providerId).get();

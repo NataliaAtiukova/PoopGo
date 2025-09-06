@@ -9,6 +9,7 @@ import '../../models/order.dart';
 import '../../routes.dart';
 import '../../widgets/image_picker_row.dart';
 import '../../widgets/map_preview.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OrderFormScreen extends StatefulWidget {
   const OrderFormScreen({super.key});
@@ -69,24 +70,29 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
       final order = Order(
         id: id,
         customerId: auth.currentUser!.uid,
-        address: _address.text.trim().isEmpty ? null : _address.text.trim(),
-        lat: _lat,
-        lng: _lng,
-        scheduledAt: _scheduledAt!,
-        volumeLiters: int.parse(_volume.text),
-        photoUrls: urls,
-        notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
         providerId: null,
+        address: _address.text.trim(),
+        latitude: _lat ?? 0.0,
+        longitude: _lng ?? 0.0,
+        requestedDate: _scheduledAt!,
         status: OrderStatus.pending,
+        notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+        volume: double.tryParse(_volume.text) ?? 0.0,
+        imageUrls: urls,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        price: 0.0,
+        isPaid: false,
+        paymentMethod: null,
+        serviceFeePaid: false,
       );
       await fs.createOrder(order);
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, Routes.orderStatus, arguments: order.id, (route) => route.settings.name == Routes.customerHome);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to create order: $e')));
+      final l = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${l.error}: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -95,7 +101,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Request Sewage Pickup')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.requestPickup)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -104,7 +110,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
             children: [
               TextFormField(
                 controller: _address,
-                decoration: const InputDecoration(labelText: 'Address (optional map)'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.addressOptionalMap),
               ),
               const SizedBox(height: 12),
               Row(
@@ -113,9 +119,9 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                     child: TextFormField(
                       controller: _date,
                       readOnly: true,
-                      decoration: const InputDecoration(labelText: 'Date'),
+                      decoration: InputDecoration(labelText: AppLocalizations.of(context)!.date),
                       onTap: _pickDateTime,
-                      validator: (v) => (_scheduledAt == null) ? 'Select date/time' : null,
+                      validator: (v) => (_scheduledAt == null) ? AppLocalizations.of(context)!.selectDateTime : null,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -123,7 +129,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                     child: TextFormField(
                       controller: _time,
                       readOnly: true,
-                      decoration: const InputDecoration(labelText: 'Time'),
+                      decoration: InputDecoration(labelText: AppLocalizations.of(context)!.time),
                       onTap: _pickDateTime,
                     ),
                   ),
@@ -132,11 +138,11 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _volume,
-                decoration: const InputDecoration(labelText: 'Tank volume (liters)'),
+                decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.volume} (L)'),
                 keyboardType: TextInputType.number,
                 validator: (v) {
                   final n = int.tryParse(v ?? '');
-                  if (n == null || n <= 0) return 'Enter a positive number';
+                  if (n == null || n <= 0) return AppLocalizations.of(context)!.enterPositiveNumber;
                   return null;
                 },
               ),
@@ -145,7 +151,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                 children: [
                   Expanded(
                     child: TextFormField(
-                      decoration: const InputDecoration(labelText: 'Latitude (optional)'),
+                      decoration: InputDecoration(labelText: AppLocalizations.of(context)!.latitudeOptional),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                       onChanged: (v) => setState(() => _lat = double.tryParse(v)),
                     ),
@@ -153,7 +159,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextFormField(
-                      decoration: const InputDecoration(labelText: 'Longitude (optional)'),
+                      decoration: InputDecoration(labelText: AppLocalizations.of(context)!.longitudeOptional),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                       onChanged: (v) => setState(() => _lng = double.tryParse(v)),
                     ),
@@ -168,7 +174,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
               TextFormField(
                 controller: _notes,
                 maxLines: 4,
-                decoration: const InputDecoration(labelText: 'Additional notes'),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.additionalNotes),
               ),
               const SizedBox(height: 20),
               SizedBox(
@@ -176,11 +182,11 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.send),
                   onPressed: _loading ? null : _submit,
-                  label: _loading ? const CircularProgressIndicator() : const Text('Submit Request'),
+                  label: _loading ? const CircularProgressIndicator() : Text(AppLocalizations.of(context)!.submitRequest),
                 ),
               ),
               const SizedBox(height: 8),
-              const Text('Tip: Map selection and exact GPS are optional; add in a future iteration with google_maps_flutter.'),
+              Text(AppLocalizations.of(context)!.mapTip),
             ],
           ),
         ),

@@ -184,7 +184,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 maxLines: 2,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter the pickup address';
+                    return AppLocalizations.of(context)!.pleaseEnterPickupAddress;
                   }
                   return null;
                 },
@@ -268,11 +268,11 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter tank volume';
+                    return AppLocalizations.of(context)!.enterTankVolume;
                   }
                   final volume = double.tryParse(value);
                   if (volume == null || volume <= 0) {
-                    return 'Please enter a valid volume';
+                    return AppLocalizations.of(context)!.enterValidVolume;
                   }
                   return null;
                 },
@@ -291,11 +291,11 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter your price offer';
+                    return AppLocalizations.of(context)!.enterPriceOffer;
                   }
                   final price = double.tryParse(value);
                   if (price == null || price <= 0) {
-                    return 'Please enter a valid price';
+                    return AppLocalizations.of(context)!.enterValidPrice;
                   }
                   return null;
                 },
@@ -310,14 +310,14 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   labelText: AppLocalizations.of(context)!.choosePaymentMethod,
                   prefixIcon: const Icon(Icons.payment),
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: 'Cash',
                     child: Row(
                       children: [
                         Icon(Icons.money, color: Colors.green),
                         SizedBox(width: 8),
-                        Text('Cash'),
+                        Text(AppLocalizations.of(context)!.cashPayment),
                       ],
                     ),
                   ),
@@ -327,7 +327,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                       children: [
                         Icon(Icons.account_balance, color: Colors.grey),
                         SizedBox(width: 8),
-                        Text('Bank Transfer'),
+                        Text(AppLocalizations.of(context)!.bankTransfer),
                       ],
                     ),
                   ),
@@ -337,7 +337,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                       children: [
                         Icon(Icons.credit_card, color: Colors.blue),
                         SizedBox(width: 8),
-                        Text('Card on Completion'),
+                        Text(AppLocalizations.of(context)!.cardOnCompletion),
                       ],
                     ),
                   ),
@@ -361,7 +361,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               TextFormField(
                 controller: _notesController,
                 decoration: InputDecoration(
-                  labelText: '${AppLocalizations.of(context)!.notes} (optional)',
+                  labelText: '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})',
                   hintText: AppLocalizations.of(context)!.notes,
                   prefixIcon: Icon(Icons.note),
                 ),

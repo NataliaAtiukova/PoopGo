@@ -5,7 +5,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
-import '../../theme.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// BookingScreen: lightweight wrapper around order creation with enforced Pending status.
@@ -98,26 +97,26 @@ class _BookingScreenState extends State<BookingScreen> {
             TextFormField(
               controller: _address,
               decoration: InputDecoration(labelText: AppLocalizations.of(context)!.address),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.pleaseEnterPickupAddress : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _volume,
               decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.volume} (L)'),
               keyboardType: TextInputType.number,
-              validator: (v) => (v == null || double.tryParse(v) == null) ? 'Enter volume' : null,
+              validator: (v) => (v == null || double.tryParse(v) == null) ? AppLocalizations.of(context)!.enterTankVolume : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _price,
               decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.totalPrice} (₽)'),
               keyboardType: TextInputType.number,
-              validator: (v) => (v == null || double.tryParse(v) == null) ? 'Enter price' : null,
+              validator: (v) => (v == null || double.tryParse(v) == null) ? AppLocalizations.of(context)!.enterPriceOffer : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _notes,
-              decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.notes} (optional)'),
+              decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})'),
               minLines: 2,
               maxLines: 4,
             ),

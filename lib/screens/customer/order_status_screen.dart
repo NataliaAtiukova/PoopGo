@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
-import '../../services/payment_config.dart';
 import '../shared/chat_screen.dart';
 import 'order_edit_screen.dart';
-import '../../widgets/payment_method_selector.dart';
+import '../../widgets/payment_method_display.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../utils/l10n.dart';
 import '../../utils/money.dart';
+import '../../utils/format.dart' as fmt;
 import '../../widgets/service_fee_modal.dart';
 
 class OrderStatusScreen extends StatefulWidget {
@@ -22,6 +22,7 @@ class OrderStatusScreen extends StatefulWidget {
 
 class _OrderStatusScreenState extends State<OrderStatusScreen> {
   Order? _order;
+  bool _promptedCommission = false;
 
   @override
   void initState() {
@@ -31,33 +32,11 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
   Future<void> _loadOrder() async {
     final order = await FirebaseService.getOrderById(widget.orderId);
-    if (mounted) {
-      setState(() => _order = order);
-    }
-    if (mounted && _order != null && _shouldPromptCommission()) {
-      // Prompt only on Accepted & unpaid
-      await Future.delayed(const Duration(milliseconds: 200));
-      if (mounted) {
-        await showServiceFeeModal(context, _order!);
-        final refreshed = await FirebaseService.getOrderById(widget.orderId);
-        if (mounted) setState(() => _order = refreshed);
-      }
-    }
+    if (mounted) setState(() => _order = order);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_order == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Order Status'),
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.orderStatus),
@@ -90,9 +69,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                     if (mounted) {
                       showDialog(
                         context: context,
-                        builder: (context) => const AlertDialog(
-                          title: Text('Contact locked'),
-                          content: Text('The service fee has not been paid. Contact details are unavailable.'),
+                        builder: (context) => AlertDialog(
+                          title: Text(AppLocalizations.of(context)!.contactLocked),
+                          content: Text(AppLocalizations.of(context)!.contactLockedMsg),
                         ),
                       );
                     }
@@ -109,11 +88,30 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: StreamBuilder<Order?>(
+        stream: FirebaseService.streamOrderById(widget.orderId),
+        builder: (context, snap) {
+          final order = snap.data ?? _order;
+          if (order == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          _order = order; // keep local reference for helpers
+
+          // Prompt commission once when accepted & unpaid
+          if (_shouldPromptCommission() && !_promptedCommission) {
+            _promptedCommission = true;
+            Future.microtask(() async {
+              await showServiceFeeModal(context, _order!);
+              final refreshed = await FirebaseService.getOrderById(widget.orderId);
+              if (mounted) setState(() => _order = refreshed);
+            });
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             // Status Card
             Card(
               child: Padding(
@@ -159,6 +157,14 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                     _buildDetailRow(AppLocalizations.of(context)!.date, _formatDateTime(_order!.requestedDate), Icons.calendar_today),
                     const Divider(),
                     _buildDetailRow(AppLocalizations.of(context)!.totalPrice, '${_order!.price.toStringAsFixed(0)} ₽', Icons.attach_money),
+                    const Divider(),
+                    _buildDetailWidgetRow(
+                      AppLocalizations.of(context)!.method,
+                      PaymentMethodDisplay(paymentMethod: _order!.paymentMethod, showLabel: true, iconSize: 16),
+                      Icons.payment,
+                    ),
+                    const Divider(),
+                    _buildPaymentStatus(),
                     if (_order!.notes != null && _order!.notes!.isNotEmpty) ...[
                       const Divider(),
                       _buildDetailRow(AppLocalizations.of(context)!.notes, _order!.notes!, Icons.note),
@@ -241,9 +247,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      _buildPaymentRow('Total Price', '${_order!.price.toStringAsFixed(2)} ₽', Icons.attach_money),
+                      _buildPaymentRow(AppLocalizations.of(context)!.totalPrice, '${_order!.price.toStringAsFixed(2)} ₽', Icons.attach_money),
                       const Divider(),
-                      _buildPaymentRow('Service Fee (10%)', _feeText(), Icons.business),
+                      _buildPaymentRow(AppLocalizations.of(context)!.serviceFee10, _feeText(), Icons.business),
                        const Divider(),
                        _buildPaymentStatus(),
                       const SizedBox(height: 8),
@@ -271,7 +277,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             
             const SizedBox(height: 24),
           ],
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -281,7 +289,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
       width: 80,
       height: 80,
       decoration: BoxDecoration(
-        color: _getStatusColor(_order!.status).withOpacity(0.1),
+        color: _getStatusColor(_order!.status).withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: Icon(
@@ -357,23 +365,22 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   }
 
   String _getStatusDescription(OrderStatus status) {
+    final l = AppLocalizations.of(context)!;
     switch (status) {
       case OrderStatus.pending:
-        return 'Your request is being reviewed by our providers.';
+        return l.statusDescPending;
       case OrderStatus.accepted:
-        return 'A provider has accepted your request and will contact you soon.';
+        return l.statusDescAccepted;
       case OrderStatus.onTheWay:
-        return 'Your provider is on the way to your location.';
+        return l.statusDescOnTheWay;
       case OrderStatus.completed:
-        return 'Your septic tank service has been completed successfully.';
+        return l.statusDescCompleted;
       case OrderStatus.cancelled:
-        return 'This order has been cancelled.';
+        return l.statusDescCancelled;
     }
   }
 
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  }
+  String _formatDateTime(DateTime dateTime) => fmt.formatDateTime(context, dateTime);
 
   bool _isContactLocked() {
     if (_order == null) return false;
@@ -438,7 +445,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: _order!.isPaid ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+              color: _order!.isPaid ? Colors.green.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -449,6 +456,25 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailWidgetRow(String label, Widget value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.grey[400], size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[400]),
+            ),
+          ),
+          Flexible(child: value),
         ],
       ),
     );
@@ -485,7 +511,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                     final refreshed = await FirebaseService.getOrderById(widget.orderId);
                     if (mounted) setState(() => _order = refreshed);
                   },
-                  child: const Text('Pay Now'),
+                  child: Text(AppLocalizations.of(context)!.payNow),
                 ),
             ],
           ),
@@ -504,7 +530,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             children: [
               const CircleAvatar(radius: 24, child: Icon(Icons.person)),
               const SizedBox(width: 16),
-              Expanded(child: Text('Provider Assigned', style: Theme.of(context).textTheme.titleMedium)),
+              Expanded(child: Text(AppLocalizations.of(context)!.providerAssigned, style: Theme.of(context).textTheme.titleMedium)),
               IconButton(icon: const Icon(Icons.chat, color: Colors.grey), onPressed: () {}),
             ],
           ),
@@ -531,7 +557,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(data?['fullName'] ?? 'Provider', style: Theme.of(context).textTheme.titleMedium),
+                      Text(data?['fullName'] ?? AppLocalizations.of(context)!.provider, style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 4),
                       Text(data?['phone'] ?? '-', style: Theme.of(context).textTheme.bodyMedium),
                     ],
@@ -565,7 +591,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Service Fee',
+              AppLocalizations.of(context)!.serviceFee10,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.grey[400],
                   ),
@@ -574,11 +600,11 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: paid ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+              color: paid ? Colors.green.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              paid ? 'Paid' : 'Pending',
+              paid ? AppLocalizations.of(context)!.paid : AppLocalizations.of(context)!.pending,
               style: TextStyle(
                 color: paid ? Colors.green : Colors.orange,
                 fontWeight: FontWeight.bold,
@@ -592,90 +618,6 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
   String _feeText() => '${calculateServiceFee(_order!.price).toStringAsFixed(2)} ₽';
 
-  void _showPaymentDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          PaymentMethod? selectedMethod;
-          
-          return AlertDialog(
-            title: const Text('Payment Method'),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: PaymentMethodSelector(
-                selectedMethod: selectedMethod,
-                onChanged: (method) {
-                  setDialogState(() {
-                    selectedMethod = method;
-                  });
-                },
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: selectedMethod != null 
-                    ? () => _confirmPayment(selectedMethod!)
-                    : null,
-                child: const Text('Continue'),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  void _confirmPayment(PaymentMethod method) {
-    Navigator.pop(context); // Close method selection dialog
-    
-    showDialog(
-      context: context,
-      builder: (context) => PaymentConfirmationDialog(
-        amount: _order!.price,
-        paymentMethod: method,
-        onCancel: () => Navigator.pop(context),
-        onConfirm: () => _markAsPaid(),
-      ),
-    );
-  }
-
-  Future<void> _markAsPaid() async {
-    Navigator.pop(context); // Close confirmation dialog
-    
-    try {
-      final updatedOrder = _order!.copyWith(
-        isPaid: true,
-        updatedAt: DateTime.now(),
-      );
-      
-      await FirebaseService.updateOrder(updatedOrder);
-      
-      if (mounted) {
-        setState(() {
-          _order = updatedOrder;
-        });
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payment marked as completed!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update payment status: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
+  // Payment dialog flows for test/manual payment were removed in favor of
+  // unified Service Fee modal and CloudPayments flow.
 }

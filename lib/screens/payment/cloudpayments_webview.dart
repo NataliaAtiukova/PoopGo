@@ -56,7 +56,7 @@ class _CloudPaymentsWebViewState extends State<CloudPaymentsWebView> {
     final l = AppLocalizations.of(context)!;
     final publicId = PaymentConfig.cloudPaymentsPublicId;
     final amount = widget.amount.toStringAsFixed(2);
-    final description = widget.description ?? 'Service commission for order ${widget.orderId}';
+    final description = widget.description ?? l.serviceCommissionForOrder(widget.orderId);
     final invoiceId = widget.orderId;
     final accountId = widget.customerAccountId ?? 'customer';
 
@@ -121,7 +121,7 @@ class _CloudPaymentsWebViewState extends State<CloudPaymentsWebView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('CloudPayments'),
+        title: Text(AppLocalizations.of(context)!.cloudPaymentsTitle),
       ),
       body: Stack(
         children: [

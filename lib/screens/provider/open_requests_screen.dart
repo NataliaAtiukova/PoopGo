@@ -42,7 +42,7 @@ class OpenRequestsScreen extends StatelessWidget {
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.orderAcceptedSuccess)));
                           },
-                          child: const Text('Accept'),
+                          child: Text(AppLocalizations.of(context)!.accept),
                         ),
                         TextButton(
                           onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.orderRejected))),

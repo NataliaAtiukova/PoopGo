@@ -36,10 +36,18 @@ class Routes {
         customerHome: (ctx) => const CustomerHomeScreen(),
         providerHome: (ctx) => const ProviderHomeScreen(),
         orderForm: (ctx) => const OrderFormScreen(),
-        orderStatus: (ctx) => const OrderStatusScreen(),
+        orderStatus: (ctx) {
+          final args = ModalRoute.of(ctx)?.settings.arguments;
+          final orderId = args is String ? args : '';
+          return OrderStatusScreen(orderId: orderId);
+        },
         openRequests: (ctx) => const OpenRequestsScreen(),
         providerProfile: (ctx) => const ProviderProfileScreen(),
-        chat: (ctx) => const ChatScreen(),
+        chat: (ctx) {
+          final args = ModalRoute.of(ctx)?.settings.arguments;
+          final orderId = args is String ? args : '';
+          return ChatScreen(orderId: orderId);
+        },
       };
 }
 
@@ -72,7 +80,7 @@ class SplashRouter extends StatelessWidget {
               );
             }
             final profile = snap.data!;
-            if (profile.role == UserRole.customer) {
+            if (profile.role == 'customer') {
               return const CustomerHomeScreen();
             } else {
               return const ProviderHomeScreen();
@@ -83,4 +91,3 @@ class SplashRouter extends StatelessWidget {
     );
   }
 }
-

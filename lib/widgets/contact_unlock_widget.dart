@@ -121,7 +121,7 @@ class _ContactUnlockWidgetState extends State<ContactUnlockWidget> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(data['fullName'] ?? 'Provider', style: Theme.of(context).textTheme.titleMedium),
+                      Text(data['fullName'] ?? AppLocalizations.of(context)!.provider, style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 4),
                       Text(data['phone'] ?? '-', style: Theme.of(context).textTheme.bodyMedium),
                     ],
