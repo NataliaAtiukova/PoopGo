@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
+import '../../services/payment_config.dart';
 import '../shared/chat_screen.dart';
 import 'order_edit_screen.dart';
 import '../../widgets/payment_method_selector.dart';
@@ -30,8 +31,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     if (mounted) {
       setState(() => _order = order);
     }
-    if (mounted && _order != null && _order!.status == OrderStatus.completed && !_order!.serviceFeePaid) {
-      // Prompt to pay service fee when completed and not paid
+    if (mounted && _order != null && _shouldLockContact()) {
+      // Prompt to pay service fee when accepted/onTheWay/completed and not paid
       await Future.delayed(const Duration(milliseconds: 200));
       if (mounted) {
         await showServiceFeeModal(context, _order!);
@@ -260,8 +261,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               ),
             ],
             
-            // Payment Summary (only for completed orders)
-            if (_order!.status == OrderStatus.completed) ...[
+            // Service Commission & Payment Summary for accepted and later
+            if (_order!.status == OrderStatus.accepted || _order!.status == OrderStatus.onTheWay || _order!.status == OrderStatus.completed) ...[
               const SizedBox(height: 24),
               Text(
                 'Payment Summary',
@@ -279,26 +280,26 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                       const Divider(),
                       _buildPaymentRow('Provider Share', '${_order!.price.toStringAsFixed(0)} ₽ (100%)', Icons.person),
                       const Divider(),
-                      _buildPaymentRow('Service Fee (10%)', '${(_order!.price * 0.10).toStringAsFixed(0)} ₽', Icons.business),
-                      const Divider(),
-                      _buildPaymentStatus(),
-                      const SizedBox(height: 8),
-                      _buildServiceFeeStatus(),
-                      if (!_order!.serviceFeePaid) ...[
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              await showServiceFeeModal(context, _order!);
-                              final refreshed = await FirebaseService.getOrderById(widget.orderId);
-                              if (mounted) setState(() => _order = refreshed);
-                            },
-                            icon: const Icon(Icons.payment),
-                            label: const Text('Pay Service Fee'),
-                          ),
-                        ),
-                      ],
+                      _buildPaymentRow('Service Fee (10%)', _feeText(), Icons.business),
+                       const Divider(),
+                       _buildPaymentStatus(),
+                       const SizedBox(height: 8),
+                       _buildServiceFeeStatus(),
+                      if (_shouldLockContact()) ...[
+                         const SizedBox(height: 16),
+                         SizedBox(
+                           width: double.infinity,
+                           child: ElevatedButton.icon(
+                             onPressed: () async {
+                               await showServiceFeeModal(context, _order!);
+                               final refreshed = await FirebaseService.getOrderById(widget.orderId);
+                               if (mounted) setState(() => _order = refreshed);
+                             },
+                             icon: const Icon(Icons.payment),
+                             label: const Text('Pay Service Fee'),
+                           ),
+                         ),
+                       ],
                     ],
                   ),
                 ),
@@ -412,9 +413,12 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   }
 
   bool _shouldLockContact() {
-    // Lock contact access only when order is completed and service fee not paid
+    // Lock contact access when order is accepted or later and service fee not paid
     if (_order == null) return false;
-    return _order!.status == OrderStatus.completed && !_order!.serviceFeePaid;
+    if (_order!.price < PaymentConfig.minTotalForCommission) return false;
+    final s = _order!.status;
+    final requiresFee = (s == OrderStatus.accepted || s == OrderStatus.onTheWay || s == OrderStatus.completed);
+    return requiresFee && !_order!.serviceFeePaid;
   }
 
   Widget _buildPaymentRow(String label, String value, IconData icon) {
@@ -522,6 +526,13 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         ],
       ),
     );
+  }
+
+  String _feeText() {
+    if (_order!.price < PaymentConfig.minTotalForCommission) {
+      return '0 ₽ (skipped)';
+    }
+    return '${(_order!.price * PaymentConfig.serviceFeePercent).toStringAsFixed(0)} ₽';
   }
 
   void _showPaymentDialog() {
