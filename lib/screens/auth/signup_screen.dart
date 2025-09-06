@@ -49,6 +49,7 @@ class _SignupScreenState extends State<SignupScreen> {
         role: _role,
         firestore: firestore,
       );
+      // Save contact data
       if (_role == UserRole.provider) {
         await firestore.saveProviderProfile(
           uid: auth.currentUser!.uid,
@@ -56,6 +57,12 @@ class _SignupScreenState extends State<SignupScreen> {
           phone: _phone.text.trim(),
           companyName: _company.text.trim().isEmpty ? null : _company.text.trim(),
           vehicleInfo: _vehicle.text.trim().isEmpty ? null : _vehicle.text.trim(),
+        );
+      } else {
+        await firestore.saveCustomerContact(
+          uid: auth.currentUser!.uid,
+          fullName: _name.text.trim(),
+          phone: _phone.text.trim(),
         );
       }
       await messaging.init(firestore, auth.currentUser!.uid);
@@ -89,14 +96,14 @@ class _SignupScreenState extends State<SignupScreen> {
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 12),
+              TextFormField(
+                controller: _phone,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(labelText: 'Phone Number'),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
               if (_role == UserRole.provider) ...[
-                TextFormField(
-                  controller: _phone,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(labelText: 'Phone Number'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
-                const SizedBox(height: 12),
                 TextFormField(
                   controller: _company,
                   decoration: const InputDecoration(labelText: 'Company Name (optional)'),

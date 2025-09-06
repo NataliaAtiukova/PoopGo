@@ -225,7 +225,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 Text(
                   message['message'] ?? '',
                   style: TextStyle(
-                    color: isMe ? Colors.white : Colors.black87,
+                    color: isMe ? Colors.white : Colors.grey[300],
                     fontSize: 16,
                   ),
                 ),
@@ -235,7 +235,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   style: TextStyle(
                     color: isMe 
                         ? Colors.white.withOpacity(0.7)
-                        : Colors.grey[600],
+                        : Colors.grey[400],
                     fontSize: 12,
                   ),
                 ),
