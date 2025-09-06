@@ -40,6 +40,7 @@ class Order {
   final double price; // customer's price offer in RUB
   final bool isPaid;
   final String? paymentMethod; // payment method selected by customer
+  final bool serviceFeePaid; // service commission paid by customer
 
   Order({
     required this.id,
@@ -58,6 +59,7 @@ class Order {
     required this.price,
     this.isPaid = false,
     this.paymentMethod,
+    this.serviceFeePaid = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -78,6 +80,7 @@ class Order {
       'price': price,
       'isPaid': isPaid,
       'paymentMethod': paymentMethod,
+      'serviceFeePaid': serviceFeePaid,
     };
   }
 
@@ -104,6 +107,7 @@ class Order {
       price: map['price']?.toDouble() ?? 0.0,
       isPaid: map['isPaid'] ?? false,
       paymentMethod: map['paymentMethod'],
+      serviceFeePaid: map['serviceFeePaid'] ?? false,
     );
   }
 
@@ -124,6 +128,7 @@ class Order {
     double? price,
     bool? isPaid,
     String? paymentMethod,
+    bool? serviceFeePaid,
   }) {
     return Order(
       id: id ?? this.id,
@@ -142,6 +147,7 @@ class Order {
       price: price ?? this.price,
       isPaid: isPaid ?? this.isPaid,
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      serviceFeePaid: serviceFeePaid ?? this.serviceFeePaid,
     );
   }
 
