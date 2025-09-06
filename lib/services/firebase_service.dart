@@ -109,6 +109,45 @@ class FirebaseService {
         });
   }
 
+  static Stream<List<app_models.Order>> getCompletedOrdersForProvider(String providerId) {
+    return _firestore
+        .collection('orders')
+        .where('providerId', isEqualTo: providerId)
+        .where('status', isEqualTo: app_models.OrderStatus.completed.name)
+        .snapshots()
+        .map((snapshot) {
+          final orders = snapshot.docs
+              .map((doc) => app_models.Order.fromMap({...doc.data(), 'id': doc.id}))
+              .toList();
+          orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return orders;
+        });
+  }
+
+  static Stream<List<app_models.Order>> getActiveOrdersForProvider(String providerId) {
+    return _firestore
+        .collection('orders')
+        .where('providerId', isEqualTo: providerId)
+        .where('status', whereIn: [
+          app_models.OrderStatus.accepted.name,
+          app_models.OrderStatus.onTheWay.name,
+        ])
+        .snapshots()
+        .map((snapshot) {
+          final orders = snapshot.docs
+              .map((doc) => app_models.Order.fromMap({...doc.data(), 'id': doc.id}))
+              .toList();
+          orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return orders;
+        });
+  }
+
+  static Future<Map<String, dynamic>?> getUserContact(String userId) async {
+    final doc = await _firestore.collection('users').doc(userId).get();
+    if (!doc.exists) return null;
+    return doc.data();
+  }
+
   static Future<app_models.Order?> getOrderById(String orderId) async {
     final doc = await _firestore.collection('orders').doc(orderId).get();
     if (doc.exists) {
@@ -198,4 +237,3 @@ class FirebaseService {
     });
   }
 }
-

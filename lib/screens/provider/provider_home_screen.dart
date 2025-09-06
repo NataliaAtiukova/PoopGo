@@ -6,6 +6,7 @@ import '../../services/firebase_service.dart';
 import '../../widgets/price_display.dart';
 import '../../widgets/payment_method_display.dart';
 import '../shared/chat_screen.dart';
+import 'provider_job_history_screen.dart';
 
 class ProviderHomeScreen extends StatefulWidget {
   const ProviderHomeScreen({super.key});
@@ -23,6 +24,17 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       appBar: AppBar(
         title: const Text('PoopGo Provider'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProviderJobHistoryScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
@@ -256,7 +268,7 @@ class _MyJobsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Order>>(
-      stream: FirebaseService.getOrdersForProvider(
+      stream: FirebaseService.getActiveOrdersForProvider(
         FirebaseAuth.instance.currentUser!.uid,
       ),
       builder: (context, snapshot) {
@@ -367,6 +379,23 @@ class _MyJobsTab extends StatelessWidget {
                   PriceDisplay(price: order.price, showLabel: false),
                 ],
               ),
+              const SizedBox(height: 6),
+              if (order.serviceFeePaid)
+                FutureBuilder<Map<String, dynamic>?>(
+                  future: FirebaseService.getUserContact(order.customerId),
+                  builder: (context, snap) {
+                    if (snap.connectionState != ConnectionState.done) {
+                      return const SizedBox.shrink();
+                    }
+                    final data = snap.data ?? {};
+                    final name = data['fullName'] ?? data['name'] ?? 'Customer';
+                    final phone = data['phone'] ?? '-';
+                    return Text(
+                      'Customer: $name, $phone',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    );
+                  },
+                ),
               const SizedBox(height: 4),
               Row(
                 children: [
@@ -396,6 +425,18 @@ class _MyJobsTab extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () {
+                        final canChat = order.serviceFeePaid &&
+                            (order.status == OrderStatus.onTheWay || order.status == OrderStatus.completed);
+                        if (!canChat) {
+                          showDialog(
+                            context: context,
+                            builder: (context) => const AlertDialog(
+                              title: Text('Chat locked'),
+                              content: Text('Chat will become available after the customer pays the service commission.'),
+                            ),
+                          );
+                          return;
+                        }
                         Navigator.push(
                           context,
                           MaterialPageRoute(

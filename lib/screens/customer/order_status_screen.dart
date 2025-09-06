@@ -376,7 +376,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
   bool _isContactLocked() {
     if (_order == null) return false;
-    return _order!.serviceFeePaid == false;
+    final s = _order!.status;
+    final allowedStatus = (s == OrderStatus.onTheWay || s == OrderStatus.completed);
+    if (!allowedStatus) return true; // Accepted or earlier: always locked
+    return _order!.serviceFeePaid == false; // OnTheWay/Completed: require paid
   }
 
   bool _shouldPromptCommission() {

@@ -100,4 +100,17 @@ class FirestoreService {
     if (!snap.exists) return null;
     return snap.data() as Map<String, dynamic>;
   }
+
+  Future<void> saveCustomerContact({
+    required String uid,
+    required String fullName,
+    required String phone,
+  }) async {
+    await users.doc(uid).set({
+      'fullName': fullName,
+      'phone': phone,
+      'updatedAt': FieldValue.serverTimestamp(),
+      'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
 }
