@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/order.dart';
 import 'package:intl/intl.dart';
+import 'payment_method_display.dart';
 
 class OrderListTile extends StatelessWidget {
   final Order order;
@@ -30,6 +31,12 @@ class OrderListTile extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.bold,
                 ),
+              ),
+              const SizedBox(width: 8),
+              PaymentMethodDisplay(
+                paymentMethod: order.paymentMethod,
+                showLabel: false,
+                iconSize: 14,
               ),
             ],
           ),

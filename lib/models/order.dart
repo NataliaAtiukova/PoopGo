@@ -39,6 +39,7 @@ class Order {
   final DateTime? updatedAt;
   final double price; // customer's price offer in RUB
   final bool isPaid;
+  final String? paymentMethod; // payment method selected by customer
 
   Order({
     required this.id,
@@ -56,6 +57,7 @@ class Order {
     this.updatedAt,
     required this.price,
     this.isPaid = false,
+    this.paymentMethod,
   });
 
   Map<String, dynamic> toMap() {
@@ -75,6 +77,7 @@ class Order {
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
       'price': price,
       'isPaid': isPaid,
+      'paymentMethod': paymentMethod,
     };
   }
 
@@ -100,6 +103,7 @@ class Order {
           : null,
       price: map['price']?.toDouble() ?? 0.0,
       isPaid: map['isPaid'] ?? false,
+      paymentMethod: map['paymentMethod'],
     );
   }
 
@@ -119,6 +123,7 @@ class Order {
     DateTime? updatedAt,
     double? price,
     bool? isPaid,
+    String? paymentMethod,
   }) {
     return Order(
       id: id ?? this.id,
@@ -136,6 +141,7 @@ class Order {
       updatedAt: updatedAt ?? this.updatedAt,
       price: price ?? this.price,
       isPaid: isPaid ?? this.isPaid,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
     );
   }
 

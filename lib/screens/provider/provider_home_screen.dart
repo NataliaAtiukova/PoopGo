@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
+import '../../widgets/price_display.dart';
+import '../../widgets/payment_method_display.dart';
 import '../shared/chat_screen.dart';
 
 class ProviderHomeScreen extends StatefulWidget {
@@ -144,12 +146,17 @@ class _AvailableJobsTab extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                Text(
-                  '${order.volume}L',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    PriceDisplay(price: order.price, showLabel: false),
+                    const SizedBox(height: 4),
+                    PaymentMethodDisplay(
+                      paymentMethod: order.paymentMethod,
+                      showLabel: false,
+                      iconSize: 14,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -350,9 +357,29 @@ class _MyJobsTab extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 4),
-              Text(
-                'Date: ${_formatDate(order.requestedDate)}',
-                style: Theme.of(context).textTheme.bodyMedium,
+              Row(
+                children: [
+                  Text(
+                    'Date: ${_formatDate(order.requestedDate)}',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  PriceDisplay(price: order.price, showLabel: false),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Text(
+                    'Method: ',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  PaymentMethodDisplay(
+                    paymentMethod: order.paymentMethod,
+                    showLabel: true,
+                    iconSize: 14,
+                  ),
+                ],
               ),
               if (order.notes != null && order.notes!.isNotEmpty) ...[
                 const SizedBox(height: 8),
