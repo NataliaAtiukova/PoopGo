@@ -24,6 +24,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
   final List<XFile> _selectedImages = [];
   bool _isLoading = false;
+  String? _selectedPaymentMethod;
 
   @override
   void dispose() {
@@ -114,6 +115,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         createdAt: DateTime.now(),
         price: double.parse(_priceController.text),
         isPaid: false,
+        paymentMethod: _selectedPaymentMethod,
       );
 
       await FirebaseService.createOrder(order);
@@ -293,6 +295,60 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   final price = double.tryParse(value);
                   if (price == null || price <= 0) {
                     return 'Please enter a valid price';
+                  }
+                  return null;
+                },
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Payment Method
+              DropdownButtonFormField<String>(
+                value: _selectedPaymentMethod,
+                decoration: const InputDecoration(
+                  labelText: 'Payment Method',
+                  prefixIcon: Icon(Icons.payment),
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'Cash',
+                    child: Row(
+                      children: [
+                        Icon(Icons.money, color: Colors.green),
+                        SizedBox(width: 8),
+                        Text('Cash'),
+                      ],
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Bank Transfer',
+                    child: Row(
+                      children: [
+                        Icon(Icons.account_balance, color: Colors.grey),
+                        SizedBox(width: 8),
+                        Text('Bank Transfer'),
+                      ],
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Card on Completion',
+                    child: Row(
+                      children: [
+                        Icon(Icons.credit_card, color: Colors.blue),
+                        SizedBox(width: 8),
+                        Text('Card on Completion'),
+                      ],
+                    ),
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedPaymentMethod = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a payment method';
                   }
                   return null;
                 },

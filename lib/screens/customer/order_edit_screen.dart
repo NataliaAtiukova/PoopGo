@@ -26,6 +26,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
   TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
   final List<XFile> _selectedImages = [];
   bool _isLoading = false;
+  String? _selectedPaymentMethod;
 
   @override
   void initState() {
@@ -40,6 +41,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
     _priceController.text = widget.order.price.toString();
     _selectedDate = widget.order.requestedDate;
     _selectedTime = TimeOfDay.fromDateTime(widget.order.requestedDate);
+    _selectedPaymentMethod = widget.order.paymentMethod;
   }
 
   @override
@@ -123,6 +125,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
         volume: double.parse(_volumeController.text),
         imageUrls: imageUrls,
         price: double.parse(_priceController.text),
+        paymentMethod: _selectedPaymentMethod,
         updatedAt: DateTime.now(),
       );
 
@@ -348,6 +351,60 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                   final price = double.tryParse(value);
                   if (price == null || price <= 0) {
                     return 'Please enter a valid price';
+                  }
+                  return null;
+                },
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Payment Method
+              DropdownButtonFormField<String>(
+                value: _selectedPaymentMethod,
+                decoration: const InputDecoration(
+                  labelText: 'Payment Method',
+                  prefixIcon: Icon(Icons.payment),
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'Cash',
+                    child: Row(
+                      children: [
+                        Icon(Icons.money, color: Colors.green),
+                        SizedBox(width: 8),
+                        Text('Cash'),
+                      ],
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Bank Transfer',
+                    child: Row(
+                      children: [
+                        Icon(Icons.account_balance, color: Colors.grey),
+                        SizedBox(width: 8),
+                        Text('Bank Transfer'),
+                      ],
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Card on Completion',
+                    child: Row(
+                      children: [
+                        Icon(Icons.credit_card, color: Colors.blue),
+                        SizedBox(width: 8),
+                        Text('Card on Completion'),
+                      ],
+                    ),
+                  ),
+                ],
+                onChanged: widget.order.isEditable ? (value) {
+                  setState(() {
+                    _selectedPaymentMethod = value;
+                  });
+                } : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a payment method';
                   }
                   return null;
                 },

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
+import '../../widgets/price_display.dart';
 import 'booking_form_screen.dart';
 import 'order_status_screen.dart';
 import '../shared/chat_screen.dart';
@@ -290,9 +291,15 @@ class _HomeTab extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '${order.volume}L • ${_formatDate(order.requestedDate)}',
-                      style: Theme.of(context).textTheme.bodyMedium,
+                    Row(
+                      children: [
+                        Text(
+                          '${order.volume}L • ${_formatDate(order.requestedDate)}',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(width: 8),
+                        PriceDisplay(price: order.price, showLabel: false),
+                      ],
                     ),
                   ],
                 ),
@@ -442,9 +449,15 @@ class _OrdersTab extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 4),
-              Text(
-                'Date: ${_formatDate(order.requestedDate)}',
-                style: Theme.of(context).textTheme.bodyMedium,
+              Row(
+                children: [
+                  Text(
+                    'Date: ${_formatDate(order.requestedDate)}',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  PriceDisplay(price: order.price, showLabel: false),
+                ],
               ),
               if (order.notes != null && order.notes!.isNotEmpty) ...[
                 const SizedBox(height: 8),
