@@ -71,48 +71,49 @@ class ServiceFeeModal extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1976D2),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                final result = await Navigator.of(context).push<bool>(
-                  MaterialPageRoute(
-                    builder: (_) => CloudPaymentsWebView(
-                      orderId: order.id,
-                      amount: amount,
-                      customerAccountId: order.customerId,
-                      description: 'Service commission for order ${order.id}',
+          if (order.status == OrderStatus.accepted && !order.serviceFeePaid)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1976D2),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  final result = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (_) => CloudPaymentsWebView(
+                        orderId: order.id,
+                        amount: amount,
+                        customerAccountId: order.customerId,
+                        description: 'Service commission for order ${order.id}',
+                      ),
                     ),
-                  ),
-                );
-                if (result == true) {
-                  final updated = order.copyWith(serviceFeePaid: true, updatedAt: DateTime.now());
-                  await FirebaseService.updateOrder(updated);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Service fee paid successfully'), backgroundColor: Colors.green),
-                    );
+                  );
+                  if (result == true) {
+                    final updated = order.copyWith(serviceFeePaid: true, updatedAt: DateTime.now());
+                    await FirebaseService.updateOrder(updated);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Service fee paid successfully'), backgroundColor: Colors.green),
+                      );
+                    }
+                  } else if (result == false) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Payment cancelled or failed'), backgroundColor: Colors.red),
+                      );
+                    }
                   }
-                } else if (result == false) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Payment cancelled or failed'), backgroundColor: Colors.red),
-                    );
-                  }
-                }
-              },
-              icon: const Icon(Icons.payment),
-              label: const Text('Pay Service Fee'),
+                },
+                icon: const Icon(Icons.payment),
+                label: const Text('Pay Service Fee'),
+              ),
             ),
-          ),
-          if (PaymentConfig.enablePaymentSimulation) ...[
+          if (PaymentConfig.enablePaymentSimulation && order.status == OrderStatus.accepted && !order.serviceFeePaid) ...[
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,

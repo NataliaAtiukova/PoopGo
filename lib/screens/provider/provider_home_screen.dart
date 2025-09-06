@@ -435,7 +435,32 @@ class _MyJobsTab extends StatelessWidget {
 
   Future<void> _updateStatus(BuildContext context, Order order, OrderStatus newStatus) async {
     try {
-      await FirebaseService.updateOrderStatus(order.id, newStatus);
+      // Refresh current order to ensure up-to-date status/payment
+      final current = await FirebaseService.getOrderById(order.id) ?? order;
+
+      // Enforce linear flow and commission requirement
+      if (newStatus == OrderStatus.onTheWay) {
+        if (current.status != OrderStatus.accepted) {
+          await _showAlert(context, 'Invalid status', 'You must accept the order before starting the job.');
+          return;
+        }
+        if (current.serviceFeePaid == false) {
+          await _showAlert(
+            context,
+            'Payment required',
+            'This order has not been paid for yet. Please wait for the customer to pay the service commission before proceeding.',
+          );
+          return;
+        }
+      }
+      if (newStatus == OrderStatus.completed) {
+        if (current.status != OrderStatus.onTheWay) {
+          await _showAlert(context, 'Invalid status', 'You can complete the job only after you are on the way.');
+          return;
+        }
+      }
+
+      await FirebaseService.updateOrderStatus(current.id, newStatus);
       
       // Send notification to customer
       String title = '';
@@ -476,6 +501,22 @@ class _MyJobsTab extends StatelessWidget {
         );
       }
     }
+  }
+
+  Future<void> _showAlert(BuildContext context, String title, String message) async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showOrderDetails(BuildContext context, Order order) {
