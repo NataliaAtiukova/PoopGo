@@ -8,6 +8,8 @@ import '../../widgets/price_display.dart';
 import 'booking_form_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'order_status_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../utils/l10n.dart';
 import '../shared/chat_screen.dart';
 import '../shared/profile_settings_screen.dart';
 
@@ -97,12 +99,12 @@ class _HomeTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Welcome to PoopGo!',
+                    AppLocalizations.of(context)!.welcomeTitle,
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Need septic tank services? Request a pickup and we\'ll connect you with a professional provider.',
+                    AppLocalizations.of(context)!.welcomeSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -114,7 +116,7 @@ class _HomeTab extends StatelessWidget {
           
           // Quick Actions
           Text(
-            'Quick Actions',
+            AppLocalizations.of(context)!.quickActions,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           
@@ -160,7 +162,7 @@ class _HomeTab extends StatelessWidget {
           
           // Recent Orders
           Text(
-            'Recent Orders',
+            AppLocalizations.of(context)!.recentOrders,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           
@@ -177,7 +179,7 @@ class _HomeTab extends StatelessWidget {
               
               if (snapshot.hasError) {
                 return Center(
-                  child: Text('Error: ${snapshot.error}'),
+                  child: Text('${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
                 );
               }
               
@@ -196,12 +198,12 @@ class _HomeTab extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No orders yet',
+                          AppLocalizations.of(context)!.noOrdersYet,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Request your first septic pickup to get started!',
+                          AppLocalizations.of(context)!.firstOrderHint,
                           style: Theme.of(context).textTheme.bodyMedium,
                           textAlign: TextAlign.center,
                         ),
@@ -311,7 +313,7 @@ class _HomeTab extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
-                              'Commission paid',
+                              AppLocalizations.of(context)!.commissionPaid,
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: Colors.green,
                                     fontWeight: FontWeight.w600,
@@ -324,7 +326,7 @@ class _HomeTab extends StatelessWidget {
                 ),
               ),
               Text(
-                order.status.displayName,
+                orderStatusText(context, order.status),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: _getStatusColor(order.status),
                   fontWeight: FontWeight.w600,
@@ -373,7 +375,7 @@ class _OrdersTab extends StatelessWidget {
         
         if (snapshot.hasError) {
           return Center(
-            child: Text('Error: ${snapshot.error}'),
+            child: Text('${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
           );
         }
         
@@ -454,7 +456,7 @@ class _OrdersTab extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    order.status.displayName,
+                    orderStatusText(context, order.status),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: _getStatusColor(order.status),
                       fontWeight: FontWeight.w600,

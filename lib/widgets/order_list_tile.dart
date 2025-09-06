@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/order.dart';
+import '../utils/l10n.dart';
 import 'package:intl/intl.dart';
 import 'payment_method_display.dart';
 
@@ -59,12 +60,12 @@ class _StatusChip extends StatelessWidget {
       OrderStatus.accepted => Colors.blue,
       OrderStatus.onTheWay => Colors.purple,
       OrderStatus.completed => Colors.green,
+      OrderStatus.cancelled => Colors.red,
     };
     return Chip(
-      label: Text(status.name),
+      label: Builder(builder: (context) => Text(orderStatusText(context, status))),
       backgroundColor: color.withOpacity(.15),
       labelStyle: TextStyle(color: color),
     );
   }
 }
-

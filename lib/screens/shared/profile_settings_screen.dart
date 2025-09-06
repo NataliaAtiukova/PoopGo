@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../services/storage_service.dart';
@@ -113,11 +114,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile saved'), backgroundColor: Colors.green));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.profileSaved), backgroundColor: Colors.green));
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save: $e'), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context)!.failedToSave}: $e'), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -127,7 +128,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   Widget build(BuildContext context) {
     final isProvider = widget.role == 'provider';
     return Scaffold(
-      appBar: AppBar(title: Text(isProvider ? 'Provider Settings' : 'Profile Settings')),
+      appBar: AppBar(title: Text(isProvider ? AppLocalizations.of(context)!.providerSettings : AppLocalizations.of(context)!.profileSettings)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
@@ -175,7 +176,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       TextFormField(
                         controller: _fullNameController,
                         decoration: const InputDecoration(
-                          labelText: 'Full name',
+                          labelText: AppLocalizations.of(context)!.fullName,
                           prefixIcon: Icon(Icons.person_outline),
                         ),
                         validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
@@ -185,7 +186,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
                         decoration: const InputDecoration(
-                          labelText: 'Phone number',
+                          labelText: AppLocalizations.of(context)!.phoneNumber,
                           prefixIcon: Icon(Icons.phone_outlined),
                         ),
                         validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your phone' : null,
@@ -195,7 +196,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
-                          labelText: 'Email',
+                          labelText: AppLocalizations.of(context)!.email,
                           prefixIcon: Icon(Icons.email_outlined),
                         ),
                         validator: (v) {
@@ -208,7 +209,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       ElevatedButton.icon(
                         onPressed: _loading ? null : _save,
                         icon: const Icon(Icons.save),
-                        label: const Text('Save'),
+                        label: Text(AppLocalizations.of(context)!.save),
                       ),
                     ],
                   ),
@@ -218,4 +219,3 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     );
   }
 }
-

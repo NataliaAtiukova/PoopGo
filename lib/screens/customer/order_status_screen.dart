@@ -7,6 +7,7 @@ import '../shared/chat_screen.dart';
 import 'order_edit_screen.dart';
 import '../../widgets/payment_method_selector.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../utils/l10n.dart';
 import '../../utils/money.dart';
 import '../../widgets/service_fee_modal.dart';
 
@@ -122,7 +123,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                     _buildStatusIndicator(),
                     const SizedBox(height: 16),
                     Text(
-                      _order!.status.displayName,
+                      orderStatusText(context, _order!.status),
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 8),
@@ -140,7 +141,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             
             // Order Details
             Text(
-              'Order Details',
+              AppLocalizations.of(context)!.orderDetails,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             
@@ -151,16 +152,16 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    _buildDetailRow('Address', _order!.address, Icons.location_on),
+                    _buildDetailRow(AppLocalizations.of(context)!.address, _order!.address, Icons.location_on),
                     const Divider(),
-                    _buildDetailRow('Volume', '${_order!.volume}L', Icons.water_drop),
+                    _buildDetailRow(AppLocalizations.of(context)!.volume, '${_order!.volume}L', Icons.water_drop),
                     const Divider(),
-                    _buildDetailRow('Date', _formatDateTime(_order!.requestedDate), Icons.calendar_today),
+                    _buildDetailRow(AppLocalizations.of(context)!.date, _formatDateTime(_order!.requestedDate), Icons.calendar_today),
                     const Divider(),
-                    _buildDetailRow('Price', '${_order!.price.toStringAsFixed(0)} ₽', Icons.attach_money),
+                    _buildDetailRow(AppLocalizations.of(context)!.totalPrice, '${_order!.price.toStringAsFixed(0)} ₽', Icons.attach_money),
                     if (_order!.notes != null && _order!.notes!.isNotEmpty) ...[
                       const Divider(),
-                      _buildDetailRow('Notes', _order!.notes!, Icons.note),
+                      _buildDetailRow(AppLocalizations.of(context)!.notes, _order!.notes!, Icons.note),
                     ],
                   ],
                 ),
@@ -171,7 +172,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             if (_order!.imageUrls.isNotEmpty) ...[
               const SizedBox(height: 24),
               Text(
-                'Photos',
+                AppLocalizations.of(context)!.photos,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               
@@ -213,7 +214,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             if (_order!.providerId != null) ...[
               const SizedBox(height: 24),
               Text(
-                'Provider',
+                AppLocalizations.of(context)!.provider,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               
@@ -428,7 +429,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Payment Status',
+              AppLocalizations.of(context)!.paymentStatus,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.grey[400],
               ),
@@ -441,7 +442,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              _order!.isPaid ? 'Paid' : 'Pending',
+              _order!.isPaid ? AppLocalizations.of(context)!.paid : AppLocalizations.of(context)!.pending,
               style: TextStyle(
                 color: _order!.isPaid ? Colors.green : Colors.orange,
                 fontWeight: FontWeight.bold,
@@ -468,10 +469,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Contact Locked', style: Theme.of(context).textTheme.titleMedium),
+                    Text(AppLocalizations.of(context)!.contactLocked, style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 4),
                     Text(
-                      'Your order has been accepted by a provider. To view their contact info and continue, please pay the 10% service fee.',
+                      AppLocalizations.of(context)!.contactLockedMsg,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],

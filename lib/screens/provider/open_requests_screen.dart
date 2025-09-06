@@ -23,7 +23,7 @@ class OpenRequestsScreen extends StatelessWidget {
           }
           final orders = snapshot.data!;
           if (orders.isEmpty) {
-            return const Center(child: Text('No open requests.'));
+            return Center(child: Text(AppLocalizations.of(context)!.noAvailableJobs));
           }
           return ListView.builder(
             itemCount: orders.length,
@@ -40,13 +40,13 @@ class OpenRequestsScreen extends StatelessWidget {
                           onPressed: () async {
                             await firestore.acceptOrder(orderId: order.id, providerId: auth.currentUser!.uid);
                             if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Order accepted')));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.orderAcceptedSuccess)));
                           },
                           child: const Text('Accept'),
                         ),
                         TextButton(
-                          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Rejected'))),
-                          child: const Text('Reject'),
+                          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.orderRejected))),
+                          child: Text(AppLocalizations.of(context)!.reject),
                         ),
                       ],
                     )

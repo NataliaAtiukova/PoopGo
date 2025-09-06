@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
 import '../../theme.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// BookingScreen: lightweight wrapper around order creation with enforced Pending status.
 class BookingScreen extends StatefulWidget {
@@ -79,7 +80,7 @@ class _BookingScreenState extends State<BookingScreen> {
       Navigator.pop(context, orderId);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to create order: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context)!.error}: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -88,7 +89,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('New Order')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.newOrder)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -96,27 +97,27 @@ class _BookingScreenState extends State<BookingScreen> {
           children: [
             TextFormField(
               controller: _address,
-              decoration: const InputDecoration(labelText: 'Address'),
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.address),
               validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _volume,
-              decoration: const InputDecoration(labelText: 'Volume (L)'),
+              decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.volume} (L)'),
               keyboardType: TextInputType.number,
               validator: (v) => (v == null || double.tryParse(v) == null) ? 'Enter volume' : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _price,
-              decoration: const InputDecoration(labelText: 'Price (₽)'),
+              decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.totalPrice} (₽)'),
               keyboardType: TextInputType.number,
               validator: (v) => (v == null || double.tryParse(v) == null) ? 'Enter price' : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _notes,
-              decoration: const InputDecoration(labelText: 'Notes (optional)'),
+              decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.notes} (optional)'),
               minLines: 2,
               maxLines: 4,
             ),
@@ -155,7 +156,7 @@ class _BookingScreenState extends State<BookingScreen> {
             OutlinedButton.icon(
               onPressed: _pickImages,
               icon: const Icon(Icons.photo_library),
-              label: Text('Add Photos (${_images.length})'),
+              label: Text('${AppLocalizations.of(context)!.addPhotos} (${_images.length})'),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -164,7 +165,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 onPressed: _loading ? null : _submit,
                 child: _loading
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Create Order'),
+                    : Text(AppLocalizations.of(context)!.createOrder),
               ),
             ),
           ],
@@ -173,4 +174,3 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 }
-

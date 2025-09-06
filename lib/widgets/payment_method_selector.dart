@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 enum PaymentMethod {
   yoomoney,
@@ -36,7 +37,7 @@ class _PaymentMethodSelectorState extends State<PaymentMethodSelector> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Choose Payment Method',
+          AppLocalizations.of(context)!.choosePaymentMethod,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -137,28 +138,30 @@ class _PaymentMethodSelectorState extends State<PaymentMethodSelector> {
   }
 
   String _getPaymentName(PaymentMethod method) {
+    final l = AppLocalizations.of(context)!;
     switch (method) {
       case PaymentMethod.yoomoney:
-        return 'YooMoney';
+        return l.yoomoney;
       case PaymentMethod.sberpay:
-        return 'SberPay';
+        return l.sberpay;
       case PaymentMethod.tinkoff:
-        return 'Tinkoff';
+        return l.tinkoff;
       case PaymentMethod.cash:
-        return 'Cash Payment';
+        return l.cashPayment;
     }
   }
 
   String _getPaymentDescription(PaymentMethod method) {
+    final l = AppLocalizations.of(context)!;
     switch (method) {
       case PaymentMethod.yoomoney:
-        return 'Pay with YooMoney wallet';
+        return l.payWithYooMoney;
       case PaymentMethod.sberpay:
-        return 'Pay with Sberbank card';
+        return l.payWithSber;
       case PaymentMethod.tinkoff:
-        return 'Pay with Tinkoff card';
+        return l.payWithTinkoff;
       case PaymentMethod.cash:
-        return 'Pay in cash to provider';
+        return l.payInCash;
     }
   }
 }
@@ -179,30 +182,31 @@ class PaymentConfirmationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Confirm Payment'),
+      title: Text(l.confirmPayment),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Amount: ${amount.toStringAsFixed(0)} ₽'),
+          Text('${l.amount}: ${amount.toStringAsFixed(0)} ₽'),
           const SizedBox(height: 8),
-          Text('Method: ${_getPaymentName(paymentMethod)}'),
+          Text('${l.methodLabel}: ${_getPaymentName(paymentMethod)}'),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'This is a placeholder for future payment integration. In a real implementation, this would redirect to the payment gateway.',
-            style: TextStyle(fontStyle: FontStyle.italic),
+            style: const TextStyle(fontStyle: FontStyle.italic),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: onCancel,
-          child: const Text('Cancel'),
+          child: Text(l.cancel),
         ),
         ElevatedButton(
           onPressed: onConfirm,
-          child: const Text('Confirm Payment'),
+          child: Text(l.confirmPayment),
         ),
       ],
     );

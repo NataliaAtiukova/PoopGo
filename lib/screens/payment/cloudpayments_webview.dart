@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../services/payment_config.dart';
 
@@ -52,6 +53,7 @@ class _CloudPaymentsWebViewState extends State<CloudPaymentsWebView> {
   }
 
   void _loadDynamicHtml() {
+    final l = AppLocalizations.of(context)!;
     final publicId = PaymentConfig.cloudPaymentsPublicId;
     final amount = widget.amount.toStringAsFixed(2);
     final description = widget.description ?? 'Service commission for order ${widget.orderId}';
@@ -64,7 +66,7 @@ class _CloudPaymentsWebViewState extends State<CloudPaymentsWebView> {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CloudPayments</title>
+  <title>${l.cloudPaymentsTitle}</title>
   <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
   <style>
     html, body { background:#0f1115; color:#e6e6e6; margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; }
@@ -98,9 +100,9 @@ class _CloudPaymentsWebViewState extends State<CloudPaymentsWebView> {
   </head>
   <body>
     <div class="wrap">
-      <div class="title">Processing service fee payment</div>
+      <div class="title">${l.cpProcessingTitle}</div>
       <div class="amount">₽%AMOUNT_TEXT%</div>
-      <button class="btn" onclick="pay()">Retry Payment</button>
+      <button class="btn" onclick="pay()">${l.cpRetry}</button>
     </div>
   </body>
   </html>
@@ -131,4 +133,3 @@ class _CloudPaymentsWebViewState extends State<CloudPaymentsWebView> {
     );
   }
 }
-

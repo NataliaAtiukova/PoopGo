@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../services/firebase_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ChatScreen extends StatefulWidget {
   final String orderId;
@@ -56,7 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
+        title: Text(AppLocalizations.of(context)!.chat),
       ),
       body: Column(
         children: [
@@ -71,7 +72,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 
                 if (snapshot.hasError) {
                   return Center(
-                    child: Text('Error: ${snapshot.error}'),
+                    child: Text('${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
                   );
                 }
                 
@@ -89,12 +90,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No messages yet',
+                          AppLocalizations.of(context)!.noMessagesYet,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Start a conversation about your order.',
+                          AppLocalizations.of(context)!.startConversation,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
@@ -139,7 +140,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: TextField(
                     controller: _messageController,
                     decoration: InputDecoration(
-                      hintText: 'Type a message...',
+                      hintText: AppLocalizations.of(context)!.typeMessageHint,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
