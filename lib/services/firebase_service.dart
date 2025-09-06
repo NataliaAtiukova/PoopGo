@@ -129,6 +129,7 @@ class FirebaseService {
         .collection('orders')
         .where('providerId', isEqualTo: providerId)
         .where('status', whereIn: [
+          app_models.OrderStatus.pending.name,
           app_models.OrderStatus.accepted.name,
           app_models.OrderStatus.onTheWay.name,
         ])
