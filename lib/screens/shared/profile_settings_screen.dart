@@ -175,9 +175,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       const SizedBox(height: 20),
                       TextFormField(
                         controller: _fullNameController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: AppLocalizations.of(context)!.fullName,
-                          prefixIcon: Icon(Icons.person_outline),
+                          prefixIcon: const Icon(Icons.person_outline),
                         ),
                         validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
                       ),
@@ -185,9 +185,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       TextFormField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: AppLocalizations.of(context)!.phoneNumber,
-                          prefixIcon: Icon(Icons.phone_outlined),
+                          prefixIcon: const Icon(Icons.phone_outlined),
                         ),
                         validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your phone' : null,
                       ),
@@ -195,9 +195,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: AppLocalizations.of(context)!.email,
-                          prefixIcon: Icon(Icons.email_outlined),
+                          prefixIcon: const Icon(Icons.email_outlined),
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Enter your email';
