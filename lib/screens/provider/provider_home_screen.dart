@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
@@ -7,6 +8,7 @@ import '../../widgets/price_display.dart';
 import '../../widgets/payment_method_display.dart';
 import '../shared/chat_screen.dart';
 import 'provider_job_history_screen.dart';
+import '../shared/profile_settings_screen.dart';
 
 class ProviderHomeScreen extends StatefulWidget {
   const ProviderHomeScreen({super.key});
@@ -25,17 +27,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
         title: const Text('PoopGo Provider'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ProviderJobHistoryScreen(),
-                ),
-              );
-            },
-          ),
-          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
@@ -48,6 +39,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
         children: const [
           _AvailableJobsTab(),
           _MyJobsTab(),
+          _HistoryTab(),
           _ProfileTab(),
         ],
       ),
@@ -62,6 +54,10 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.assignment),
             label: 'My Jobs',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'History',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -706,6 +702,29 @@ class _ProfileTab extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    future: FirebaseFirestore.instance.collection('providers').doc(user?.uid).get(),
+                    builder: (context, snap) {
+                      if (snap.connectionState != ConnectionState.done) {
+                        return const SizedBox.shrink();
+                      }
+                      final data = snap.data?.data() ?? {};
+                      final fullName = (data['fullName'] ?? '').toString();
+                      final phone = (data['phone'] ?? '').toString();
+                      if (fullName.isEmpty && phone.isEmpty) return const SizedBox.shrink();
+                      return Column(
+                        children: [
+                          if (fullName.isNotEmpty)
+                            Text(fullName, style: Theme.of(context).textTheme.titleMedium),
+                          if (phone.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(phone, style: Theme.of(context).textTheme.bodyMedium),
+                          ],
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -721,7 +740,12 @@ class _ProfileTab extends StatelessWidget {
                   title: const Text('Settings'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
-                    // TODO: Implement settings
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ProfileSettingsScreen(role: 'provider'),
+                      ),
+                    );
                   },
                 ),
                 const Divider(height: 1),
@@ -747,5 +771,15 @@ class _ProfileTab extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _HistoryTab extends StatelessWidget {
+  const _HistoryTab();
+
+  @override
+  Widget build(BuildContext context) {
+    // Reuse the history list used by the standalone screen
+    return const ProviderJobHistoryList();
   }
 }

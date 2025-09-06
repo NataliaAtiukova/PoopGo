@@ -3,6 +3,7 @@ import '../models/order.dart';
 import '../logic/order_status_handler.dart';
 import '../services/firebase_service.dart';
 import '../widgets/service_fee_modal.dart';
+import '../utils/money.dart';
 import '../screens/shared/chat_screen.dart';
 
 class ContactUnlockWidget extends StatefulWidget {
@@ -56,6 +57,22 @@ class _ContactUnlockWidgetState extends State<ContactUnlockWidget> {
                     'Your order has been accepted by the provider. To continue and access their contact details, please pay the 10% service commission.',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Show a quick summary of amounts so it's clear before payment
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Total: ${_order.price.toStringAsFixed(2)} ₽',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+                Text(
+                  'Fee (10%): ${calculateServiceFee(_order.price).toStringAsFixed(2)} ₽',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
             ),

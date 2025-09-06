@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
@@ -7,6 +8,7 @@ import '../../widgets/price_display.dart';
 import 'booking_form_screen.dart';
 import 'order_status_screen.dart';
 import '../shared/chat_screen.dart';
+import '../shared/profile_settings_screen.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -551,6 +553,29 @@ class _ProfileTab extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    future: FirebaseFirestore.instance.collection('users').doc(user?.uid).get(),
+                    builder: (context, snap) {
+                      if (snap.connectionState != ConnectionState.done) {
+                        return const SizedBox.shrink();
+                      }
+                      final data = snap.data?.data() ?? {};
+                      final fullName = (data['fullName'] ?? data['name'] ?? '').toString();
+                      final phone = (data['phone'] ?? '').toString();
+                      if (fullName.isEmpty && phone.isEmpty) return const SizedBox.shrink();
+                      return Column(
+                        children: [
+                          if (fullName.isNotEmpty)
+                            Text(fullName, style: Theme.of(context).textTheme.titleMedium),
+                          if (phone.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(phone, style: Theme.of(context).textTheme.bodyMedium),
+                          ],
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -566,7 +591,12 @@ class _ProfileTab extends StatelessWidget {
                   title: const Text('Settings'),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
-                    // TODO: Implement settings
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ProfileSettingsScreen(role: 'customer'),
+                      ),
+                    );
                   },
                 ),
                 const Divider(height: 1),

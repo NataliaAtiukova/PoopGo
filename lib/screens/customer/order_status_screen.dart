@@ -6,6 +6,7 @@ import '../../services/payment_config.dart';
 import '../shared/chat_screen.dart';
 import 'order_edit_screen.dart';
 import '../../widgets/payment_method_selector.dart';
+import '../../utils/money.dart';
 import '../../widgets/service_fee_modal.dart';
 
 class OrderStatusScreen extends StatefulWidget {
@@ -238,9 +239,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      _buildPaymentRow('Total Price', '${_order!.price.toStringAsFixed(0)} ₽', Icons.attach_money),
-                      const Divider(),
-                      _buildPaymentRow('Provider Share', '${_order!.price.toStringAsFixed(0)} ₽ (100%)', Icons.person),
+                      _buildPaymentRow('Total Price', '${_order!.price.toStringAsFixed(2)} ₽', Icons.attach_money),
                       const Divider(),
                       _buildPaymentRow('Service Fee (10%)', _feeText(), Icons.business),
                        const Divider(),
@@ -376,10 +375,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
   bool _isContactLocked() {
     if (_order == null) return false;
-    final s = _order!.status;
-    final allowedStatus = (s == OrderStatus.onTheWay || s == OrderStatus.completed);
-    if (!allowedStatus) return true; // Accepted or earlier: always locked
-    return _order!.serviceFeePaid == false; // OnTheWay/Completed: require paid
+    // Contact info remains hidden until the service fee is paid
+    return _order!.serviceFeePaid == false;
   }
 
   bool _shouldPromptCommission() {
@@ -591,9 +588,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     );
   }
 
-  String _feeText() {
-    return '₽${(_order!.price * PaymentConfig.serviceFeePercent).toStringAsFixed(2)}';
-  }
+  String _feeText() => '${calculateServiceFee(_order!.price).toStringAsFixed(2)} ₽';
 
   void _showPaymentDialog() {
     showDialog(
