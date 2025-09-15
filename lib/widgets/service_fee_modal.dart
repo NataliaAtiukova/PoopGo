@@ -4,7 +4,7 @@ import '../models/order.dart';
 import '../services/payment_config.dart';
 import '../utils/money.dart';
 import '../services/firebase_service.dart';
-import '../screens/payment/cloudpayments_webview.dart';
+import '../screens/payment/payment_placeholder_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ServiceFeeModal extends StatelessWidget {
@@ -109,32 +109,12 @@ class ServiceFeeModal extends StatelessWidget {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () async {
+                  // TODO(payment): Replace with real gateway integration (e.g., Robokassa)
+                  // Currently we navigate to a placeholder screen in demo mode.
                   Navigator.of(context).pop();
-                  final result = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute(
-                      builder: (_) => CloudPaymentsWebView(
-                        orderId: order.id,
-                        amount: amount,
-                        customerAccountId: order.customerId,
-                        description: AppLocalizations.of(context)!.serviceCommissionForOrder(order.id),
-                      ),
-                    ),
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const PaymentPlaceholderScreen()),
                   );
-                  if (result == true) {
-                    final updated = order.copyWith(serviceFeePaid: true, updatedAt: DateTime.now());
-                    await FirebaseService.updateOrder(updated);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(AppLocalizations.of(context)!.serviceFeePaidSuccessfully), backgroundColor: Colors.green),
-                      );
-                    }
-                  } else if (result == false) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(AppLocalizations.of(context)!.paymentFailedOrCancelled), backgroundColor: Colors.red),
-                      );
-                    }
-                  }
                 },
                 icon: const Icon(Icons.payment),
                 label: Text(AppLocalizations.of(context)!.payNow),
