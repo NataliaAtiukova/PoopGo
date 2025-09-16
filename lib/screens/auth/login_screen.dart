@@ -140,10 +140,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
                 
                 // Logo and Title
-                Icon(
-                  Icons.local_shipping,
-                  size: 80,
-                  color: Theme.of(context).colorScheme.primary,
+                Image.asset(
+                  'assets/icon/icon.png',
+                  width: 120,
+                  height: 120,
                 ),
                 
                 const SizedBox(height: 16),
