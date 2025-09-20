@@ -228,6 +228,8 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
               // Address
               TextFormField(
                 controller: _addressController,
+                textDirection: TextDirection.ltr,
+                style: const TextStyle(fontFamily: 'Roboto'),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.address,
                   hintText: AppLocalizations.of(context)!.pleaseEnterPickupAddress,
@@ -415,6 +417,8 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
               // Notes
               TextFormField(
                 controller: _notesController,
+                textDirection: TextDirection.ltr,
+                style: const TextStyle(fontFamily: 'Roboto'),
                 decoration: InputDecoration(
                   labelText: '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})',
                   hintText: AppLocalizations.of(context)!.notes,

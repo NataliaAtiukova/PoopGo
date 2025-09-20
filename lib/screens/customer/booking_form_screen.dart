@@ -176,6 +176,8 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               // Address
               TextFormField(
                 controller: _addressController,
+                textDirection: TextDirection.ltr,
+                style: const TextStyle(fontFamily: 'Roboto'),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.address,
                   hintText: AppLocalizations.of(context)!.address,
@@ -360,6 +362,8 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               // Notes
               TextFormField(
                 controller: _notesController,
+                textDirection: TextDirection.ltr,
+                style: const TextStyle(fontFamily: 'Roboto'),
                 decoration: InputDecoration(
                   labelText: '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})',
                   hintText: AppLocalizations.of(context)!.notes,

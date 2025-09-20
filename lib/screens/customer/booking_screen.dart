@@ -96,6 +96,8 @@ class _BookingScreenState extends State<BookingScreen> {
           children: [
             TextFormField(
               controller: _address,
+              textDirection: TextDirection.ltr,
+              style: const TextStyle(fontFamily: 'Roboto'),
               decoration: InputDecoration(labelText: AppLocalizations.of(context)!.address),
               validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.pleaseEnterPickupAddress : null,
             ),
@@ -116,6 +118,8 @@ class _BookingScreenState extends State<BookingScreen> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _notes,
+              textDirection: TextDirection.ltr,
+              style: const TextStyle(fontFamily: 'Roboto'),
               decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})'),
               minLines: 2,
               maxLines: 4,

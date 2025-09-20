@@ -52,9 +52,21 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            TextField(controller: _company, decoration: InputDecoration(labelText: AppLocalizations.of(context)!.companyNameOptional)),
+            TextField(
+              controller: _company,
+              keyboardType: TextInputType.text,
+              textDirection: TextDirection.ltr,
+              style: const TextStyle(fontFamily: 'Roboto'),
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.companyNameOptional),
+            ),
             const SizedBox(height: 12),
-            TextField(controller: _license, decoration: InputDecoration(labelText: AppLocalizations.of(context)!.licenseInfoOptional)),
+            TextField(
+              controller: _license,
+              keyboardType: TextInputType.text,
+              textDirection: TextDirection.ltr,
+              style: const TextStyle(fontFamily: 'Roboto'),
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.licenseInfoOptional),
+            ),
             const SizedBox(height: 12),
             Row(
               children: [

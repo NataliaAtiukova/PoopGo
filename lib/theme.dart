@@ -11,7 +11,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      fontFamily: GoogleFonts.inter().fontFamily,
+      fontFamily: GoogleFonts.roboto().fontFamily,
       
       colorScheme: const ColorScheme.dark(
         primary: primaryBlue,
@@ -31,7 +31,7 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.roboto(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: Colors.white,
@@ -61,7 +61,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -76,7 +76,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -86,7 +86,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: Colors.white,
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -109,35 +109,35 @@ class AppTheme {
           borderSide: const BorderSide(color: primaryBlue, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        hintStyle: GoogleFonts.inter(
+        hintStyle: GoogleFonts.roboto(
           color: Colors.grey[400],
         ),
-        labelStyle: GoogleFonts.inter(
+        labelStyle: GoogleFonts.roboto(
           color: Colors.grey[300],
         ),
       ),
 
-      textTheme: GoogleFonts.interTextTheme().copyWith(
-        headlineLarge: GoogleFonts.inter(
+      textTheme: GoogleFonts.robotoTextTheme().copyWith(
+        headlineLarge: GoogleFonts.roboto(
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
-        headlineMedium: GoogleFonts.inter(
+        headlineMedium: GoogleFonts.roboto(
           fontSize: 24,
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
-        titleLarge: GoogleFonts.inter(
+        titleLarge: GoogleFonts.roboto(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
-        bodyLarge: GoogleFonts.inter(
+        bodyLarge: GoogleFonts.roboto(
           fontSize: 16,
           color: Colors.white,
         ),
-        bodyMedium: GoogleFonts.inter(
+        bodyMedium: GoogleFonts.roboto(
           fontSize: 14,
           color: Colors.grey[300],
         ),
@@ -157,12 +157,12 @@ class AppTheme {
 
       dialogTheme: DialogTheme(
         backgroundColor: surfaceColor,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.roboto(
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: Colors.white,
         ),
-        contentTextStyle: GoogleFonts.inter(
+        contentTextStyle: GoogleFonts.roboto(
           fontSize: 16,
           color: Colors.grey[300],
         ),
@@ -176,7 +176,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      fontFamily: GoogleFonts.inter().fontFamily,
+      fontFamily: GoogleFonts.roboto().fontFamily,
       colorScheme: const ColorScheme.light(
         primary: primaryBlue,
         secondary: primaryBlue,
@@ -193,7 +193,7 @@ class AppTheme {
         foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.roboto(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: Colors.black,
@@ -220,7 +220,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -234,7 +234,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -243,7 +243,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: primaryBlue,
-          textStyle: GoogleFonts.inter(
+          textStyle: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -265,34 +265,34 @@ class AppTheme {
           borderSide: const BorderSide(color: primaryBlue, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        hintStyle: GoogleFonts.inter(
+        hintStyle: GoogleFonts.roboto(
           color: Colors.grey[600],
         ),
-        labelStyle: GoogleFonts.inter(
+        labelStyle: GoogleFonts.roboto(
           color: Colors.grey[700],
         ),
       ),
-      textTheme: GoogleFonts.interTextTheme().copyWith(
-        headlineLarge: GoogleFonts.inter(
+      textTheme: GoogleFonts.robotoTextTheme().copyWith(
+        headlineLarge: GoogleFonts.roboto(
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: Colors.black,
         ),
-        headlineMedium: GoogleFonts.inter(
+        headlineMedium: GoogleFonts.roboto(
           fontSize: 24,
           fontWeight: FontWeight.w600,
           color: Colors.black,
         ),
-        titleLarge: GoogleFonts.inter(
+        titleLarge: GoogleFonts.roboto(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: Colors.black,
         ),
-        bodyLarge: GoogleFonts.inter(
+        bodyLarge: GoogleFonts.roboto(
           fontSize: 16,
           color: Colors.black,
         ),
-        bodyMedium: GoogleFonts.inter(
+        bodyMedium: GoogleFonts.roboto(
           fontSize: 14,
           color: Colors.black87,
         ),
@@ -309,12 +309,12 @@ class AppTheme {
       ),
       dialogTheme: DialogTheme(
         backgroundColor: Colors.white,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.roboto(
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: Colors.black,
         ),
-        contentTextStyle: GoogleFonts.inter(
+        contentTextStyle: GoogleFonts.roboto(
           fontSize: 16,
           color: Colors.black87,
         ),
