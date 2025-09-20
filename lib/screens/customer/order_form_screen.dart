@@ -110,6 +110,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
             children: [
               TextFormField(
                 controller: _address,
+                textDirection: TextDirection.ltr,
+                style: const TextStyle(fontFamily: 'Roboto'),
                 decoration: InputDecoration(labelText: AppLocalizations.of(context)!.addressOptionalMap),
               ),
               const SizedBox(height: 12),
@@ -118,6 +120,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _date,
+                      textDirection: TextDirection.ltr,
+                      style: const TextStyle(fontFamily: 'Roboto'),
                       readOnly: true,
                       decoration: InputDecoration(labelText: AppLocalizations.of(context)!.date),
                       onTap: _pickDateTime,
@@ -128,6 +132,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _time,
+                      textDirection: TextDirection.ltr,
+                      style: const TextStyle(fontFamily: 'Roboto'),
                       readOnly: true,
                       decoration: InputDecoration(labelText: AppLocalizations.of(context)!.time),
                       onTap: _pickDateTime,
@@ -173,6 +179,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _notes,
+                textDirection: TextDirection.ltr,
+                style: const TextStyle(fontFamily: 'Roboto'),
                 maxLines: 4,
                 decoration: InputDecoration(labelText: AppLocalizations.of(context)!.additionalNotes),
               ),

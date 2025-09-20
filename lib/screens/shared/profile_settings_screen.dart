@@ -175,6 +175,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       const SizedBox(height: 20),
                       TextFormField(
                         controller: _fullNameController,
+                        textDirection: TextDirection.ltr,
+                        style: const TextStyle(fontFamily: 'Roboto'),
                         decoration: InputDecoration(
                           labelText: AppLocalizations.of(context)!.fullName,
                           prefixIcon: const Icon(Icons.person_outline),
@@ -184,7 +186,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _phoneController,
-                        keyboardType: TextInputType.phone,
+                        textDirection: TextDirection.ltr,
+                        style: const TextStyle(fontFamily: 'Roboto'),
+                        keyboardType: TextInputType.text,
                         decoration: InputDecoration(
                           labelText: AppLocalizations.of(context)!.phoneNumber,
                           prefixIcon: const Icon(Icons.phone_outlined),
@@ -194,7 +198,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
+                        textDirection: TextDirection.ltr,
+                        style: const TextStyle(fontFamily: 'Roboto'),
+                        keyboardType: TextInputType.text,
                         decoration: InputDecoration(
                           labelText: AppLocalizations.of(context)!.email,
                           prefixIcon: const Icon(Icons.email_outlined),

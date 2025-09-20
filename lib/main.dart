@@ -34,7 +34,10 @@ class PoopGoApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: AppLocalizations.supportedLocales,
+      supportedLocales: const [
+        Locale('en', ''),
+        Locale('ru', ''),
+      ],
       home: const AuthWrapper(),
     );
   }

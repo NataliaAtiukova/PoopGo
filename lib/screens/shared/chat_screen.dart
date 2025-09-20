@@ -140,6 +140,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
+                    keyboardType: TextInputType.text,
+                    textDirection: TextDirection.ltr,
+                    style: const TextStyle(fontFamily: 'Roboto'),
                     decoration: InputDecoration(
                       hintText: AppLocalizations.of(context)!.typeMessageHint,
                       border: OutlineInputBorder(

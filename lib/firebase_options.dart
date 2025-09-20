@@ -47,21 +47,21 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBcrTkesiGSajobJ43vPvuyESPePl8IjHE',
-    appId: '1:632068250247:ios:your_ios_app_id',
+    apiKey: 'AIzaSyDPyQTRF9r9ZwkdncwwQZmMfjYahYMZfaE',
+    appId: '1:632068250247:ios:64536eacf43d97d0f43622',
     messagingSenderId: '632068250247',
     projectId: 'poogo-2d23d',
     storageBucket: 'poogo-2d23d.firebasestorage.app',
-    iosBundleId: 'com.example.poopgo',
+    iosBundleId: 'com.app.poopgo',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBcrTkesiGSajobJ43vPvuyESPePl8IjHE',
-    appId: '1:632068250247:ios:your_macos_app_id',
+    apiKey: 'AIzaSyDPyQTRF9r9ZwkdncwwQZmMfjYahYMZfaE',
+    appId: '1:632068250247:ios:64536eacf43d97d0f43622',
     messagingSenderId: '632068250247',
     projectId: 'poogo-2d23d',
     storageBucket: 'poogo-2d23d.firebasestorage.app',
-    iosBundleId: 'com.example.poopgo',
+    iosBundleId: 'com.app.poopgo',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

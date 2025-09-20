@@ -92,13 +92,17 @@ class _SignupScreenState extends State<SignupScreen> {
             children: [
               TextFormField(
                 controller: _name,
+                textDirection: TextDirection.ltr,
+                style: const TextStyle(fontFamily: 'Roboto'),
                 decoration: InputDecoration(labelText: AppLocalizations.of(context)!.fullNameLabel),
                 validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.pleaseEnterName : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _phone,
-                keyboardType: TextInputType.phone,
+                textDirection: TextDirection.ltr,
+                style: const TextStyle(fontFamily: 'Roboto'),
+                keyboardType: TextInputType.text,
                 decoration: InputDecoration(labelText: AppLocalizations.of(context)!.phoneNumberLabel),
                 validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.pleaseEnterPhoneNumber : null,
               ),
@@ -106,24 +110,32 @@ class _SignupScreenState extends State<SignupScreen> {
               if (_role == 'provider') ...[
                 TextFormField(
                   controller: _company,
+                  textDirection: TextDirection.ltr,
+                  style: const TextStyle(fontFamily: 'Roboto'),
                   decoration: InputDecoration(labelText: AppLocalizations.of(context)!.companyNameOptional),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _vehicle,
+                  textDirection: TextDirection.ltr,
+                  style: const TextStyle(fontFamily: 'Roboto'),
                   decoration: InputDecoration(labelText: AppLocalizations.of(context)!.vehicleInfoOptional),
                 ),
                 const SizedBox(height: 12),
               ],
               TextFormField(
                 controller: _email,
+                textDirection: TextDirection.ltr,
+                style: const TextStyle(fontFamily: 'Roboto'),
                 decoration: InputDecoration(labelText: AppLocalizations.of(context)!.emailLabel),
-                keyboardType: TextInputType.emailAddress,
+                keyboardType: TextInputType.text,
                 validator: (v) => (v == null || !v.contains('@')) ? AppLocalizations.of(context)!.enterValidEmail : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _password,
+                textDirection: TextDirection.ltr,
+                style: const TextStyle(fontFamily: 'Roboto'),
                 decoration: InputDecoration(labelText: AppLocalizations.of(context)!.passwordLabel),
                 obscureText: true,
                 validator: (v) => (v == null || v.length < 6) ? AppLocalizations.of(context)!.min6Chars : null,

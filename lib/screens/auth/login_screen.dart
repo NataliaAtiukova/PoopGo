@@ -190,6 +190,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (!_isLogin) ...[
                   TextFormField(
                     controller: _nameController,
+                    textDirection: TextDirection.ltr,
+                    style: const TextStyle(fontFamily: 'Roboto'),
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!.fullNameLabel,
                       prefixIcon: const Icon(Icons.person_outline),
@@ -205,11 +207,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   
                   TextFormField(
                     controller: _phoneController,
+                    textDirection: TextDirection.ltr,
+                    style: const TextStyle(fontFamily: 'Roboto'),
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!.phoneNumberLabel,
                       prefixIcon: const Icon(Icons.phone_outlined),
                     ),
-                    keyboardType: TextInputType.phone,
+                    keyboardType: TextInputType.text,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return AppLocalizations.of(context)!.pleaseEnterPhoneNumber;
@@ -223,11 +227,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Email field
                 TextFormField(
                   controller: _emailController,
+                  textDirection: TextDirection.ltr,
+                  style: const TextStyle(fontFamily: 'Roboto'),
                   decoration: InputDecoration(
                     labelText: AppLocalizations.of(context)!.emailLabel,
                     prefixIcon: const Icon(Icons.email_outlined),
                   ),
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.text,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return AppLocalizations.of(context)!.pleaseEnterEmail;
@@ -243,6 +249,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Password field
                 TextFormField(
                   controller: _passwordController,
+                  textDirection: TextDirection.ltr,
+                  style: const TextStyle(fontFamily: 'Roboto'),
                   decoration: InputDecoration(
                     labelText: AppLocalizations.of(context)!.passwordLabel,
                     prefixIcon: const Icon(Icons.lock_outline),
