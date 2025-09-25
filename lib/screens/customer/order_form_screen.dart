@@ -1,4 +1,6 @@
 import 'dart:io';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -30,6 +32,15 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
   double? _lat;
   double? _lng;
   bool _loading = false;
+  late final TapGestureRecognizer _agreementRecognizer;
+  late final TapGestureRecognizer _offerRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _agreementRecognizer = TapGestureRecognizer()..onTap = _openAgreement;
+    _offerRecognizer = TapGestureRecognizer()..onTap = _openOffer;
+  }
 
   @override
   void dispose() {
@@ -38,6 +49,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     _time.dispose();
     _volume.dispose();
     _notes.dispose();
+    _agreementRecognizer.dispose();
+    _offerRecognizer.dispose();
     super.dispose();
   }
 
@@ -98,8 +111,18 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     }
   }
 
+  void _openAgreement() {
+    Navigator.pushNamed(context, Routes.userAgreement);
+  }
+
+  void _openOffer() {
+    Navigator.pushNamed(context, Routes.publicOffer);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final bodySmall = Theme.of(context).textTheme.bodySmall;
     return Scaffold(
       appBar: AppBar(title: Text(AppLocalizations.of(context)!.requestPickup)),
       body: Padding(
@@ -195,6 +218,40 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
               ),
               const SizedBox(height: 8),
               Text(AppLocalizations.of(context)!.mapTip),
+              const SizedBox(height: 12),
+              RichText(
+                text: TextSpan(
+                  style: bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ) ??
+                      TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
+                  children: [
+                    const TextSpan(text: 'Оплачивая сервисный сбор, вы соглашаетесь с '),
+                    TextSpan(
+                      text: 'Публичной офертой',
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      recognizer: _offerRecognizer,
+                    ),
+                    const TextSpan(text: ' и '),
+                    TextSpan(
+                      text: 'Пользовательским соглашением',
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      recognizer: _agreementRecognizer,
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

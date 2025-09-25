@@ -1,6 +1,6 @@
 {
-  "appTitle": "PoopGo",
-  "providerAppTitle": "PoopGo Поставщик",
+  "appTitle": "PoopGo: Вызов ассенизаторской машины",
+  "providerAppTitle": "PoopGo: Вызов ассенизаторской машины - Поставщик",
   "navHome": "Главная",
   "navOrders": "Заказы",
   "navProfile": "Профиль",
@@ -25,7 +25,7 @@
   "totalPrice": "Итоговая стоимость",
   "serviceFee10": "Сервисный сбор (10%)",
   "orderStatus": "Статус заказа",
-  "welcomeTitle": "Добро пожаловать в PoopGo!",
+  "welcomeTitle": "Добро пожаловать в PoopGo: Вызов ассенизаторской машины!",
   "welcomeSubtitle": "Нужны услуги ассенизатора? Оставьте заявку, и мы подключим профессионального исполнителя.",
   "quickActions": "Быстрые действия",
   "recentOrders": "Недавние заказы",

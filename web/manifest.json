@@ -1,6 +1,6 @@
 {
-    "name": "poopgo",
-    "short_name": "poopgo",
+    "name": "PoopGo: Вызов ассенизаторской машины",
+    "short_name": "PoopGo: Вызов ассенизаторской машины",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

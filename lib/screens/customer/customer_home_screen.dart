@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 
 import '../../models/order.dart';
+import '../../routes.dart';
 import '../../services/firebase_service.dart';
 import '../../widgets/price_display.dart';
 import 'booking_form_screen.dart';
@@ -619,6 +620,33 @@ class _ProfileTab extends StatelessWidget {
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     // TODO: Implement help
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.payments_outlined),
+                  title: const Text('Услуги и оплата'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.servicesPayment);
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.description_outlined),
+                  title: const Text('Публичная оферта'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.publicOffer);
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.gavel_outlined),
+                  title: const Text('Пользовательское соглашение'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.userAgreement);
                   },
                 ),
                 const Divider(height: 1),

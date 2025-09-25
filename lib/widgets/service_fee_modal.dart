@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../models/order.dart';
@@ -6,8 +7,9 @@ import '../utils/money.dart';
 import '../services/firebase_service.dart';
 import '../screens/payment/payment_placeholder_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../routes.dart';
 
-class ServiceFeeModal extends StatelessWidget {
+class ServiceFeeModal extends StatefulWidget {
   final Order order;
 
   const ServiceFeeModal({super.key, required this.order});
@@ -15,8 +17,40 @@ class ServiceFeeModal extends StatelessWidget {
   double _feeAmount() => calculateServiceFee(order.price);
 
   @override
+  State<ServiceFeeModal> createState() => _ServiceFeeModalState();
+}
+
+class _ServiceFeeModalState extends State<ServiceFeeModal> {
+  late final TapGestureRecognizer _agreementRecognizer;
+  late final TapGestureRecognizer _offerRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _agreementRecognizer = TapGestureRecognizer()..onTap = _openAgreement;
+    _offerRecognizer = TapGestureRecognizer()..onTap = _openOffer;
+  }
+
+  @override
+  void dispose() {
+    _agreementRecognizer.dispose();
+    _offerRecognizer.dispose();
+    super.dispose();
+  }
+
+  void _openAgreement() {
+    Navigator.of(context).pushNamed(Routes.userAgreement);
+  }
+
+  void _openOffer() {
+    Navigator.of(context).pushNamed(Routes.publicOffer);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final amount = _feeAmount();
+    final amount = widget._feeAmount();
+    final colorScheme = Theme.of(context).colorScheme;
+    final bodySmall = Theme.of(context).textTheme.bodySmall;
 
     return Container(
       decoration: const BoxDecoration(
@@ -64,7 +98,7 @@ class ServiceFeeModal extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  formatRub(order.price),
+                  formatRub(widget.order.price),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.lightBlue[300], fontWeight: FontWeight.bold),
                 ),
               ],
@@ -82,7 +116,7 @@ class ServiceFeeModal extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.attach_money, color: Colors.lightBlue[300]),
+                Icon(Icons.currency_ruble, color: Colors.lightBlue[300]),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -98,7 +132,7 @@ class ServiceFeeModal extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          if (order.status == OrderStatus.accepted && !order.serviceFeePaid)
+          if (widget.order.status == OrderStatus.accepted && !widget.order.serviceFeePaid)
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -120,13 +154,13 @@ class ServiceFeeModal extends StatelessWidget {
                 label: Text(AppLocalizations.of(context)!.payNow),
               ),
             ),
-          if (PaymentConfig.enablePaymentSimulation && order.status == OrderStatus.accepted && !order.serviceFeePaid) ...[
+          if (PaymentConfig.enablePaymentSimulation && widget.order.status == OrderStatus.accepted && !widget.order.serviceFeePaid) ...[
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () async {
-                  final updated = order.copyWith(serviceFeePaid: true, updatedAt: DateTime.now());
+                  final updated = widget.order.copyWith(serviceFeePaid: true, updatedAt: DateTime.now());
                   await FirebaseService.updateOrder(updated);
                   if (context.mounted) {
                     Navigator.of(context).pop();
@@ -140,6 +174,40 @@ class ServiceFeeModal extends StatelessWidget {
               ),
             ),
           ],
+          const SizedBox(height: 12),
+          RichText(
+            text: TextSpan(
+              style: bodySmall?.copyWith(
+                    color: Colors.white70,
+                  ) ??
+                  const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+              children: [
+                const TextSpan(text: 'Оплачивая сервисный сбор, вы соглашаетесь с '),
+                TextSpan(
+                  text: 'Публичной офертой',
+                  style: TextStyle(
+                    color: colorScheme.primary,
+                    decoration: TextDecoration.underline,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  recognizer: _offerRecognizer,
+                ),
+                const TextSpan(text: ' и '),
+                TextSpan(
+                  text: 'Пользовательским соглашением',
+                  style: TextStyle(
+                    color: colorScheme.primary,
+                    decoration: TextDecoration.underline,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  recognizer: _agreementRecognizer,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -10,6 +10,9 @@ import 'screens/provider/provider_home_screen.dart';
 import 'screens/provider/open_requests_screen.dart';
 import 'screens/provider/profile_screen.dart';
 import 'screens/shared/chat_screen.dart';
+import 'screens/shared/services_payment_screen.dart';
+import 'screens/shared/public_offer_screen.dart';
+import 'screens/shared/user_agreement_screen.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
 import 'models/user_profile.dart';
@@ -27,9 +30,11 @@ class Routes {
   static const openRequests = '/provider/open-requests';
   static const providerProfile = '/provider/profile';
   static const chat = '/chat';
+  static const servicesPayment = '/info/services-payment';
+  static const publicOffer = '/info/public-offer';
+  static const userAgreement = '/info/user-agreement';
 
   static Map<String, WidgetBuilder> get map => {
-        splash: (ctx) => const SplashRouter(),
         login: (ctx) => const LoginScreen(),
         signup: (ctx) => const SignupScreen(),
         roleSelect: (ctx) => const RoleSelectScreen(),
@@ -48,6 +53,9 @@ class Routes {
           final orderId = args is String ? args : '';
           return ChatScreen(orderId: orderId);
         },
+        servicesPayment: (ctx) => const ServicesPaymentScreen(),
+        publicOffer: (ctx) => const PublicOfferScreen(),
+        userAgreement: (ctx) => const UserAgreementScreen(),
       };
 }
 

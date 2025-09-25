@@ -1,6 +1,6 @@
 {
-  "appTitle": "PoopGo",
-  "providerAppTitle": "PoopGo Provider",
+  "appTitle": "PoopGo: Вызов ассенизаторской машины",
+  "providerAppTitle": "PoopGo: Вызов ассенизаторской машины - Provider",
   "navHome": "Home",
   "navOrders": "Orders",
   "navProfile": "Profile",
@@ -25,7 +25,7 @@
   "totalPrice": "Total Price",
   "serviceFee10": "Service Fee (10%)",
   "orderStatus": "Order Status",
-  "welcomeTitle": "Welcome to PoopGo!",
+  "welcomeTitle": "Welcome to PoopGo: Вызов ассенизаторской машины!",
   "welcomeSubtitle": "Need septic tank services? Request a pickup and we'll connect you with a professional provider.",
   "quickActions": "Quick Actions",
   "recentOrders": "Recent Orders",

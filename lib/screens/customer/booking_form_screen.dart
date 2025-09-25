@@ -288,7 +288,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 decoration: InputDecoration(
                   labelText: '${AppLocalizations.of(context)!.totalPrice} (₽)',
                   hintText: '${AppLocalizations.of(context)!.totalPrice} (₽)',
-                  prefixIcon: Icon(Icons.attach_money),
+                  prefixIcon: Icon(Icons.currency_ruble),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {

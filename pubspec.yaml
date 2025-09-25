@@ -30,6 +30,9 @@ dependencies:
   cached_network_image: ^3.3.1
   permission_handler: ^11.3.1
   webview_flutter: ^4.4.2
+  syncfusion_flutter_pdf: ^31.1.19
+  open_filex: ^4.7.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
@@ -42,6 +45,11 @@ flutter:
   generate: true
   assets:
     - assets/icon/
+    - assets/oferta.txt
+    - assets/user_agreement.txt
+    - assets/documents/oferta_pooppgo.pdf
+    - assets/documents/oferta_pooppgo_updated.docx
+    - assets/documents/user_agreement_pooppgo.pdf
 
 flutter_icons:
   android: true

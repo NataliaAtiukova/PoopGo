@@ -156,7 +156,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                     const Divider(),
                     _buildDetailRow(AppLocalizations.of(context)!.date, _formatDateTime(_order!.requestedDate), Icons.calendar_today),
                     const Divider(),
-                    _buildDetailRow(AppLocalizations.of(context)!.totalPrice, '${_order!.price.toStringAsFixed(0)} ₽', Icons.attach_money),
+                    _buildDetailRow(AppLocalizations.of(context)!.totalPrice, '${_order!.price.toStringAsFixed(0)} ₽', Icons.currency_ruble),
                     const Divider(),
                     _buildDetailWidgetRow(
                       AppLocalizations.of(context)!.method,
@@ -247,7 +247,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      _buildPaymentRow(AppLocalizations.of(context)!.totalPrice, '${_order!.price.toStringAsFixed(2)} ₽', Icons.attach_money),
+                      _buildPaymentRow(AppLocalizations.of(context)!.totalPrice, '${_order!.price.toStringAsFixed(2)} ₽', Icons.currency_ruble),
                       const Divider(),
                       _buildPaymentRow(AppLocalizations.of(context)!.serviceFee10, _feeText(), Icons.business),
                        const Divider(),

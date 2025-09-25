@@ -18,7 +18,7 @@ class PriceDisplay extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
-          Icons.attach_money,
+          Icons.currency_ruble,
           size: 16,
           color: Theme.of(context).colorScheme.primary,
         ),

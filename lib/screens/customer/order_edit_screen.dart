@@ -342,7 +342,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                 decoration: InputDecoration(
                   labelText: '${AppLocalizations.of(context)!.totalPrice} (₽)',
                   hintText: AppLocalizations.of(context)!.enterPriceOffer,
-                  prefixIcon: const Icon(Icons.attach_money),
+                  prefixIcon: const Icon(Icons.currency_ruble),
                 ),
                 keyboardType: TextInputType.number,
                 readOnly: !widget.order.isEditable,

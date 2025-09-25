@@ -3,12 +3,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 
 import '../../models/order.dart';
+import '../../routes.dart';
 import '../../services/firebase_service.dart';
-import '../../widgets/price_display.dart';
 import '../../widgets/payment_method_display.dart';
+import '../../widgets/price_display.dart';
+import '../../widgets/provider_acceptance_dialog.dart';
+import '../../widgets/service_fee_notice.dart';
 import '../shared/chat_screen.dart';
-import 'provider_job_history_screen.dart';
 import '../shared/profile_settings_screen.dart';
+import 'provider_job_history_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../utils/l10n.dart';
 
@@ -184,6 +187,10 @@ class _AvailableJobsTab extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ],
+            const SizedBox(height: 12),
+            ServiceFeeNotice(
+              onTap: () => Navigator.pushNamed(context, Routes.servicesPayment),
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -209,6 +216,8 @@ class _AvailableJobsTab extends StatelessWidget {
   }
 
   Future<void> _acceptOrder(BuildContext context, Order order) async {
+    final agreed = await showProviderAgreementDialog(context);
+    if (!agreed) return;
     try {
       await FirebaseService.updateOrderStatus(
         order.id,
@@ -417,6 +426,10 @@ class _MyJobsTab extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               ],
+              const SizedBox(height: 8),
+              ServiceFeeNotice(
+                onTap: () => Navigator.pushNamed(context, Routes.servicesPayment),
+              ),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -601,7 +614,7 @@ class _MyJobsTab extends StatelessWidget {
                           _buildDetailRow(context, AppLocalizations.of(context)!.volume, '${o.volume}L', Icons.water_drop),
                           _buildDetailRow(context, AppLocalizations.of(context)!.date, _formatDate(o.requestedDate), Icons.calendar_today),
                           _buildDetailRow(context, AppLocalizations.of(context)!.orderStatus, orderStatusText(context, o.status), Icons.info),
-                          _buildDetailRow(context, AppLocalizations.of(context)!.totalPrice, '${o.price.toStringAsFixed(0)} ₽', Icons.attach_money),
+                          _buildDetailRow(context, AppLocalizations.of(context)!.totalPrice, '${o.price.toStringAsFixed(0)} ₽', Icons.currency_ruble),
                           _buildDetailRow(context, AppLocalizations.of(context)!.paymentStatus, o.isPaid ? AppLocalizations.of(context)!.paid : AppLocalizations.of(context)!.pending, Icons.verified),
                           _buildDetailRow(context, AppLocalizations.of(context)!.method, _paymentMethodText(context, o.paymentMethod), Icons.payment),
                           if (o.notes != null && o.notes!.isNotEmpty)
@@ -800,6 +813,33 @@ class _ProfileTab extends StatelessWidget {
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
                     // TODO: Implement help
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.payments_outlined),
+                  title: const Text('Услуги и оплата'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.servicesPayment);
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.description_outlined),
+                  title: const Text('Публичная оферта'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.publicOffer);
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.gavel_outlined),
+                  title: const Text('Пользовательское соглашение'),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.userAgreement);
                   },
                 ),
                 const Divider(height: 1),

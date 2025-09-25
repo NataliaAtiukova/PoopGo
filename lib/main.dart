@@ -10,6 +10,7 @@ import 'screens/auth/login_screen.dart';
 import 'screens/customer/customer_home_screen.dart';
 import 'screens/provider/provider_home_screen.dart';
 import 'services/firebase_service.dart';
+import 'routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +29,7 @@ class PoopGoApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
+      routes: Routes.map,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
