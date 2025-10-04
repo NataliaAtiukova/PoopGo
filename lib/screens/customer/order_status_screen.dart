@@ -10,6 +10,7 @@ import '../../utils/l10n.dart';
 import '../../utils/money.dart';
 import '../../utils/format.dart' as fmt;
 import '../../widgets/service_fee_modal.dart';
+import '../payment/payment_screen.dart';
 
 class OrderStatusScreen extends StatefulWidget {
   final String orderId;
@@ -63,15 +64,18 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 if (_isContactLocked()) {
                   if (_shouldPromptCommission()) {
                     await showServiceFeeModal(context, _order!);
-                    final refreshed = await FirebaseService.getOrderById(widget.orderId);
+                    final refreshed =
+                        await FirebaseService.getOrderById(widget.orderId);
                     if (mounted) setState(() => _order = refreshed);
                   } else {
                     if (mounted) {
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: Text(AppLocalizations.of(context)!.contactLocked),
-                          content: Text(AppLocalizations.of(context)!.contactLockedMsg),
+                          title:
+                              Text(AppLocalizations.of(context)!.contactLocked),
+                          content: Text(
+                              AppLocalizations.of(context)!.contactLockedMsg),
                         ),
                       );
                     }
@@ -102,7 +106,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             _promptedCommission = true;
             Future.microtask(() async {
               await showServiceFeeModal(context, _order!);
-              final refreshed = await FirebaseService.getOrderById(widget.orderId);
+              final refreshed =
+                  await FirebaseService.getOrderById(widget.orderId);
               if (mounted) setState(() => _order = refreshed);
             });
           }
@@ -112,171 +117,191 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-            // Status Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    _buildStatusIndicator(),
-                    const SizedBox(height: 16),
-                    Text(
-                      orderStatusText(context, _order!.status),
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _getStatusDescription(_order!.status),
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Order Details
-            Text(
-              AppLocalizations.of(context)!.orderDetails,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            
-            const SizedBox(height: 16),
-            
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _buildDetailRow(AppLocalizations.of(context)!.address, _order!.address, Icons.location_on),
-                    const Divider(),
-                    _buildDetailRow(AppLocalizations.of(context)!.volume, '${_order!.volume}L', Icons.water_drop),
-                    const Divider(),
-                    _buildDetailRow(AppLocalizations.of(context)!.date, _formatDateTime(_order!.requestedDate), Icons.calendar_today),
-                    const Divider(),
-                    _buildDetailRow(AppLocalizations.of(context)!.totalPrice, '${_order!.price.toStringAsFixed(0)} ₽', Icons.currency_ruble),
-                    const Divider(),
-                    _buildDetailWidgetRow(
-                      AppLocalizations.of(context)!.method,
-                      PaymentMethodDisplay(paymentMethod: _order!.paymentMethod, showLabel: true, iconSize: 16),
-                      Icons.payment,
-                    ),
-                    const Divider(),
-                    _buildPaymentStatus(),
-                    if (_order!.notes != null && _order!.notes!.isNotEmpty) ...[
-                      const Divider(),
-                      _buildDetailRow(AppLocalizations.of(context)!.notes, _order!.notes!, Icons.note),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            
-            // Images
-            if (_order!.imageUrls.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              Text(
-                AppLocalizations.of(context)!.photos,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              
-              const SizedBox(height: 16),
-              
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                    ),
-                    itemCount: _order!.imageUrls.length,
-                    itemBuilder: (context, index) {
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          _order!.imageUrls[index],
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.image),
-                            );
-                          },
+                // Status Card
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        _buildStatusIndicator(),
+                        const SizedBox(height: 16),
+                        Text(
+                          orderStatusText(context, _order!.status),
+                          style: Theme.of(context).textTheme.headlineMedium,
                         ),
-                      );
-                    },
+                        const SizedBox(height: 8),
+                        Text(
+                          _getStatusDescription(_order!.status),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-            
-            // Provider Info with commission gating
-            if (_order!.providerId != null) ...[
-              const SizedBox(height: 24),
-              Text(
-                AppLocalizations.of(context)!.provider,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              
-              const SizedBox(height: 16),
-              
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: _buildProviderCard(),
-              ),
-            ],
-            
-            // Service Commission card (only at Accepted)
-            if (_order!.status == OrderStatus.accepted) ...[
-              const SizedBox(height: 24),
-              Text(
-                AppLocalizations.of(context)!.paymentSummary,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              
-              const SizedBox(height: 16),
-              
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      _buildPaymentRow(AppLocalizations.of(context)!.totalPrice, '${_order!.price.toStringAsFixed(2)} ₽', Icons.currency_ruble),
-                      const Divider(),
-                      _buildPaymentRow(AppLocalizations.of(context)!.serviceFee10, _feeText(), Icons.business),
-                       const Divider(),
-                       _buildPaymentStatus(),
-                      const SizedBox(height: 8),
-                      _buildServiceFeeStatus(),
-                      if (_shouldPromptCommission()) ...[
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              onPressed: () async {
-                                await showServiceFeeModal(context, _order!);
-                                final refreshed = await FirebaseService.getOrderById(widget.orderId);
-                                if (mounted) setState(() => _order = refreshed);
-                              },
-                              icon: const Icon(Icons.payment),
-                              label: Text(AppLocalizations.of(context)!.payNow),
-                            ),
-                          ),
+
+                const SizedBox(height: 24),
+
+                // Order Details
+                Text(
+                  AppLocalizations.of(context)!.orderDetails,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+
+                const SizedBox(height: 16),
+
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _buildDetailRow(
+                            'ID заказа', _order!.orderId, Icons.tag),
+                        const Divider(),
+                        _buildDetailRow(AppLocalizations.of(context)!.address,
+                            _order!.address, Icons.location_on),
+                        const Divider(),
+                        _buildDetailRow(AppLocalizations.of(context)!.volume,
+                            '${_order!.volume}L', Icons.water_drop),
+                        const Divider(),
+                        _buildDetailRow(
+                            AppLocalizations.of(context)!.date,
+                            _formatDateTime(_order!.requestedDate),
+                            Icons.calendar_today),
+                        const Divider(),
+                        _buildDetailRow(
+                            AppLocalizations.of(context)!.totalPrice,
+                            '${_order!.price.toStringAsFixed(0)} ₽',
+                            Icons.currency_ruble),
+                        const Divider(),
+                        _buildDetailWidgetRow(
+                          AppLocalizations.of(context)!.method,
+                          PaymentMethodDisplay(
+                              paymentMethod: _order!.paymentMethod,
+                              showLabel: true,
+                              iconSize: 16),
+                          Icons.payment,
+                        ),
+                        const Divider(),
+                        _buildPaymentStatus(),
+                        if (_order!.notes != null &&
+                            _order!.notes!.isNotEmpty) ...[
+                          const Divider(),
+                          _buildDetailRow(AppLocalizations.of(context)!.notes,
+                              _order!.notes!, Icons.note),
                         ],
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-            
-            const SizedBox(height: 24),
-          ],
+
+                // Images
+                if (_order!.imageUrls.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  Text(
+                    AppLocalizations.of(context)!.photos,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemCount: _order!.imageUrls.length,
+                        itemBuilder: (context, index) {
+                          return ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              _order!.imageUrls[index],
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.image),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+
+                // Provider Info with commission gating
+                if (_order!.providerId != null) ...[
+                  const SizedBox(height: 24),
+                  Text(
+                    AppLocalizations.of(context)!.provider,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: _buildProviderCard(),
+                  ),
+                ],
+
+                // Service Commission card (only at Accepted)
+                if (_order!.status == OrderStatus.accepted) ...[
+                  const SizedBox(height: 24),
+                  Text(
+                    AppLocalizations.of(context)!.paymentSummary,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _buildPaymentRow(
+                              AppLocalizations.of(context)!.totalPrice,
+                              '${_order!.price.toStringAsFixed(2)} ₽',
+                              Icons.currency_ruble),
+                          const Divider(),
+                          _buildPaymentRow(
+                              AppLocalizations.of(context)!.serviceFee10,
+                              _feeText(),
+                              Icons.business),
+                          const Divider(),
+                          _buildPaymentStatus(),
+                          const SizedBox(height: 8),
+                          _buildServiceFeeStatus(),
+                          if (_shouldPromptCommission()) ...[
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          PaymentScreen(orderId: _order!.id),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.payment),
+                                label: const Text('Оплатить сервисный сбор'),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 24),
+              ],
             ),
           );
         },
@@ -318,8 +343,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 Text(
                   label,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[400],
-                  ),
+                        color: Colors.grey[400],
+                      ),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -380,7 +405,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     }
   }
 
-  String _formatDateTime(DateTime dateTime) => fmt.formatDateTime(context, dateTime);
+  String _formatDateTime(DateTime dateTime) =>
+      fmt.formatDateTime(context, dateTime);
 
   bool _isContactLocked() {
     if (_order == null) return false;
@@ -390,7 +416,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
   bool _shouldPromptCommission() {
     if (_order == null) return false;
-    return _order!.status == OrderStatus.accepted && _order!.serviceFeePaid == false;
+    return _order!.status == OrderStatus.accepted &&
+        _order!.serviceFeePaid == false;
   }
 
   Widget _buildPaymentRow(String label, String value, IconData icon) {
@@ -408,15 +435,15 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[400],
-              ),
+                    color: Colors.grey[400],
+                  ),
             ),
           ),
           Text(
             value,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ],
       ),
@@ -438,18 +465,22 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             child: Text(
               AppLocalizations.of(context)!.paymentStatus,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[400],
-              ),
+                    color: Colors.grey[400],
+                  ),
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: _order!.isPaid ? Colors.green.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
+              color: _order!.isPaid
+                  ? Colors.green.withValues(alpha: 0.1)
+                  : Colors.orange.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              _order!.isPaid ? AppLocalizations.of(context)!.paid : AppLocalizations.of(context)!.pending,
+              _order!.isPaid
+                  ? AppLocalizations.of(context)!.paid
+                  : AppLocalizations.of(context)!.pending,
               style: TextStyle(
                 color: _order!.isPaid ? Colors.green : Colors.orange,
                 fontWeight: FontWeight.bold,
@@ -471,7 +502,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           Expanded(
             child: Text(
               label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[400]),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: Colors.grey[400]),
             ),
           ),
           Flexible(child: value),
@@ -495,7 +529,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(AppLocalizations.of(context)!.contactLocked, style: Theme.of(context).textTheme.titleMedium),
+                    Text(AppLocalizations.of(context)!.contactLocked,
+                        style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 4),
                     Text(
                       AppLocalizations.of(context)!.contactLockedMsg,
@@ -508,7 +543,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 ElevatedButton(
                   onPressed: () async {
                     await showServiceFeeModal(context, _order!);
-                    final refreshed = await FirebaseService.getOrderById(widget.orderId);
+                    final refreshed =
+                        await FirebaseService.getOrderById(widget.orderId);
                     if (mounted) setState(() => _order = refreshed);
                   },
                   child: Text(AppLocalizations.of(context)!.payNow),
@@ -530,8 +566,12 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             children: [
               const CircleAvatar(radius: 24, child: Icon(Icons.person)),
               const SizedBox(width: 16),
-              Expanded(child: Text(AppLocalizations.of(context)!.providerAssigned, style: Theme.of(context).textTheme.titleMedium)),
-              IconButton(icon: const Icon(Icons.chat, color: Colors.grey), onPressed: () {}),
+              Expanded(
+                  child: Text(AppLocalizations.of(context)!.providerAssigned,
+                      style: Theme.of(context).textTheme.titleMedium)),
+              IconButton(
+                  icon: const Icon(Icons.chat, color: Colors.grey),
+                  onPressed: () {}),
             ],
           ),
         ),
@@ -543,7 +583,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
       future: FirebaseService.getProviderProfile(_order!.providerId!),
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
-          return const Card(child: Padding(padding: EdgeInsets.all(16), child: LinearProgressIndicator()));
+          return const Card(
+              child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: LinearProgressIndicator()));
         }
         final data = snap.data;
         return Card(
@@ -557,16 +600,24 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(data?['fullName'] ?? AppLocalizations.of(context)!.provider, style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                          data?['fullName'] ??
+                              AppLocalizations.of(context)!.provider,
+                          style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 4),
-                      Text(data?['phone'] ?? '-', style: Theme.of(context).textTheme.bodyMedium),
+                      Text(data?['phone'] ?? '-',
+                          style: Theme.of(context).textTheme.bodyMedium),
                     ],
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.chat),
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(orderId: widget.orderId)));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                ChatScreen(orderId: widget.orderId)));
                   },
                 ),
               ],
@@ -600,11 +651,15 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: paid ? Colors.green.withValues(alpha: 0.1) : Colors.orange.withValues(alpha: 0.1),
+              color: paid
+                  ? Colors.green.withValues(alpha: 0.1)
+                  : Colors.orange.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              paid ? AppLocalizations.of(context)!.paid : AppLocalizations.of(context)!.pending,
+              paid
+                  ? AppLocalizations.of(context)!.paid
+                  : AppLocalizations.of(context)!.pending,
               style: TextStyle(
                 color: paid ? Colors.green : Colors.orange,
                 fontWeight: FontWeight.bold,
@@ -616,7 +671,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     );
   }
 
-  String _feeText() => '${calculateServiceFee(_order!.price).toStringAsFixed(2)} ₽';
+  String _feeText() =>
+      '${calculateServiceFee(_order!.price).toStringAsFixed(2)} ₽';
 
   // Payment dialog flows for test/manual payment were removed in favor of
   // unified Service Fee modal and CloudPayments flow.

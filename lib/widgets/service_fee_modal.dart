@@ -2,12 +2,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../models/order.dart';
+import '../routes.dart';
+import '../screens/payment/payment_screen.dart';
+import '../services/firebase_service.dart';
 import '../services/payment_config.dart';
 import '../utils/money.dart';
-import '../services/firebase_service.dart';
-import '../screens/payment/payment_placeholder_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../routes.dart';
 
 class ServiceFeeModal extends StatefulWidget {
   final Order order;
@@ -68,14 +68,28 @@ class _ServiceFeeModalState extends State<ServiceFeeModal> {
               const SizedBox(width: 8),
               Text(
                 AppLocalizations.of(context)!.paymentSummary,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(color: Colors.white),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
             AppLocalizations.of(context)!.serviceCommissionIntro,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: Colors.white70),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'ID заказа: ${widget.order.orderId}',
+            style: Theme.of(context)
+                .textTheme
+                .labelMedium
+                ?.copyWith(color: Colors.white60),
           ),
           const SizedBox(height: 16),
           // Summary: total price
@@ -94,12 +108,17 @@ class _ServiceFeeModalState extends State<ServiceFeeModal> {
                 Expanded(
                   child: Text(
                     AppLocalizations.of(context)!.totalPrice,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: Colors.white70),
                   ),
                 ),
                 Text(
                   formatRub(widget.order.price),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.lightBlue[300], fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.lightBlue[300],
+                      fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -121,18 +140,24 @@ class _ServiceFeeModalState extends State<ServiceFeeModal> {
                 Expanded(
                   child: Text(
                     AppLocalizations.of(context)!.serviceFee10,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: Colors.white70),
                   ),
                 ),
                 Text(
                   formatRub(amount),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.lightBlue[300], fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.lightBlue[300],
+                      fontWeight: FontWeight.bold),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          if (widget.order.status == OrderStatus.accepted && !widget.order.serviceFeePaid)
+          if (widget.order.status == OrderStatus.accepted &&
+              !widget.order.serviceFeePaid)
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -140,32 +165,43 @@ class _ServiceFeeModalState extends State<ServiceFeeModal> {
                   backgroundColor: const Color(0xFF1976D2),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () async {
-                  // TODO(payment): Replace with real gateway integration (e.g., Robokassa)
-                  // Currently we navigate to a placeholder screen in demo mode.
-                  Navigator.of(context).pop();
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const PaymentPlaceholderScreen()),
+                  final bottomSheetNavigator = Navigator.of(context);
+                  final rootNavigator =
+                      Navigator.of(context, rootNavigator: true);
+
+                  bottomSheetNavigator.pop();
+                  await rootNavigator.push(
+                    MaterialPageRoute(
+                      builder: (_) => PaymentScreen(orderId: widget.order.id),
+                    ),
                   );
                 },
                 icon: const Icon(Icons.payment),
                 label: Text(AppLocalizations.of(context)!.payNow),
               ),
             ),
-          if (PaymentConfig.enablePaymentSimulation && widget.order.status == OrderStatus.accepted && !widget.order.serviceFeePaid) ...[
+          if (PaymentConfig.enablePaymentSimulation &&
+              widget.order.status == OrderStatus.accepted &&
+              !widget.order.serviceFeePaid) ...[
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () async {
-                  final updated = widget.order.copyWith(serviceFeePaid: true, updatedAt: DateTime.now());
+                  final updated = widget.order.copyWith(
+                      serviceFeePaid: true, updatedAt: DateTime.now());
                   await FirebaseService.updateOrder(updated);
                   if (context.mounted) {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(AppLocalizations.of(context)!.serviceFeePaidSuccessfully), backgroundColor: Colors.green),
+                      SnackBar(
+                          content: Text(AppLocalizations.of(context)!
+                              .serviceFeePaidSuccessfully),
+                          backgroundColor: Colors.green),
                     );
                   }
                 },
@@ -185,7 +221,8 @@ class _ServiceFeeModalState extends State<ServiceFeeModal> {
                     fontSize: 12,
                   ),
               children: [
-                const TextSpan(text: 'Оплачивая сервисный сбор, вы соглашаетесь с '),
+                const TextSpan(
+                    text: 'Оплачивая сервисный сбор, вы соглашаетесь с '),
                 TextSpan(
                   text: 'Публичной офертой',
                   style: TextStyle(
