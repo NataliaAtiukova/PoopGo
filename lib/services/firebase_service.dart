@@ -82,7 +82,8 @@ class FirebaseService {
   static Stream<List<app_models.Order>> getPendingOrders() {
     return _firestore
         .collection('orders')
-        .where('status', isEqualTo: app_models.OrderStatus.pending.name)
+        .where('status', isEqualTo: app_models.OrderStatus.paid.name)
+        .where('isPaid', isEqualTo: true)
         .snapshots()
         .map((snapshot) {
           final orders = snapshot.docs
@@ -129,6 +130,7 @@ class FirebaseService {
         .collection('orders')
         .where('providerId', isEqualTo: providerId)
         .where('status', whereIn: [
+          app_models.OrderStatus.paid.name,
           app_models.OrderStatus.pending.name,
           app_models.OrderStatus.accepted.name,
           app_models.OrderStatus.onTheWay.name,

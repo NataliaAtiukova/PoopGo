@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../models/order.dart';
 import '../routes.dart';
-import '../screens/payment/payment_screen.dart';
+import '../screens/payment/payment_info_screen.dart';
 import '../services/firebase_service.dart';
 import '../services/payment_config.dart';
 import '../utils/money.dart';
@@ -13,8 +13,6 @@ class ServiceFeeModal extends StatefulWidget {
   final Order order;
 
   const ServiceFeeModal({super.key, required this.order});
-
-  double _feeAmount() => calculateServiceFee(order.price);
 
   @override
   State<ServiceFeeModal> createState() => _ServiceFeeModalState();
@@ -48,7 +46,6 @@ class _ServiceFeeModalState extends State<ServiceFeeModal> {
 
   @override
   Widget build(BuildContext context) {
-    final amount = widget._feeAmount();
     final colorScheme = Theme.of(context).colorScheme;
     final bodySmall = Theme.of(context).textTheme.bodySmall;
 
@@ -92,7 +89,7 @@ class _ServiceFeeModalState extends State<ServiceFeeModal> {
                 ?.copyWith(color: Colors.white60),
           ),
           const SizedBox(height: 16),
-          // Summary: total price
+          // Summary: base price
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -107,7 +104,7 @@ class _ServiceFeeModalState extends State<ServiceFeeModal> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    AppLocalizations.of(context)!.totalPrice,
+                    AppLocalizations.of(context)!.amount,
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium
@@ -147,7 +144,39 @@ class _ServiceFeeModalState extends State<ServiceFeeModal> {
                   ),
                 ),
                 Text(
-                  formatRub(amount),
+                  formatRub(widget.order.serviceFee),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.lightBlue[300],
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Summary: total with fee
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF151923),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF1F2430)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.shopping_cart_checkout, color: Colors.lightBlue[300]),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(context)!.totalPrice,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: Colors.white70),
+                  ),
+                ),
+                Text(
+                  formatRub(widget.order.total),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Colors.lightBlue[300],
                       fontWeight: FontWeight.bold),
@@ -156,8 +185,7 @@ class _ServiceFeeModalState extends State<ServiceFeeModal> {
             ),
           ),
           const SizedBox(height: 16),
-          if (widget.order.status == OrderStatus.accepted &&
-              !widget.order.serviceFeePaid)
+          if (!widget.order.serviceFeePaid)
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -176,7 +204,8 @@ class _ServiceFeeModalState extends State<ServiceFeeModal> {
                   bottomSheetNavigator.pop();
                   await rootNavigator.push(
                     MaterialPageRoute(
-                      builder: (_) => PaymentScreen(orderId: widget.order.id),
+                      builder: (_) =>
+                          PaymentInfoScreen(orderId: widget.order.id),
                     ),
                   );
                 },
@@ -185,7 +214,6 @@ class _ServiceFeeModalState extends State<ServiceFeeModal> {
               ),
             ),
           if (PaymentConfig.enablePaymentSimulation &&
-              widget.order.status == OrderStatus.accepted &&
               !widget.order.serviceFeePaid) ...[
             const SizedBox(height: 10),
             SizedBox(

@@ -111,18 +111,18 @@ class _HomeTab extends StatelessWidget {
                 ],
               ),
             ),
-                      ),
-          
+          ),
+
           const SizedBox(height: 24),
-          
+
           // Quick Actions
           Text(
             AppLocalizations.of(context)!.quickActions,
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           Row(
             children: [
               Expanded(
@@ -147,23 +147,25 @@ class _HomeTab extends StatelessWidget {
                   AppLocalizations.of(context)!.trackOrders,
                   Icons.track_changes,
                   () {
-                    context.findAncestorStateOfType<_CustomerHomeScreenState>()?.setTab(1);
+                    context
+                        .findAncestorStateOfType<_CustomerHomeScreenState>()
+                        ?.setTab(1);
                   },
                 ),
               ),
             ],
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Recent Orders
           Text(
             AppLocalizations.of(context)!.recentOrders,
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           StreamBuilder<List<Order>>(
             stream: FirebaseService.getOrdersForCustomer(
               FirebaseAuth.instance.currentUser!.uid,
@@ -172,15 +174,16 @@ class _HomeTab extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
-              
+
               if (snapshot.hasError) {
                 return Center(
-                  child: Text('${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
+                  child: Text(
+                      '${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
                 );
               }
-              
+
               final orders = snapshot.data ?? [];
-              
+
               if (orders.isEmpty) {
                 return Card(
                   child: Padding(
@@ -208,7 +211,7 @@ class _HomeTab extends StatelessWidget {
                   ),
                 );
               }
-              
+
               return Column(
                 children: orders.take(3).map((order) {
                   return Padding(
@@ -285,6 +288,23 @@ class _HomeTab extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (!order.isPaid)
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          _paymentReminderText(context),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: Colors.orange[700]),
+                        ),
+                      ),
                     Text(
                       order.address,
                       style: Theme.of(context).textTheme.titleMedium,
@@ -304,21 +324,25 @@ class _HomeTab extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             softWrap: false,
                           ),
-                          const SizedBox(width: 8),
-                          PriceDisplay(price: order.price, showLabel: false),
+                         const SizedBox(width: 8),
+                          PriceDisplay(price: order.total, showLabel: false),
                           const SizedBox(width: 8),
                           if (order.serviceFeePaid)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                              color: Colors.green.withValues(alpha: 0.15),
+                                color: Colors.green.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
                                 AppLocalizations.of(context)!.commissionPaid,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
                                       color: Colors.green,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -352,6 +376,10 @@ class _HomeTab extends StatelessWidget {
 
   Color _getStatusColor(OrderStatus status) {
     switch (status) {
+      case OrderStatus.processing:
+        return Colors.orange;
+      case OrderStatus.paid:
+        return Colors.green;
       case OrderStatus.pending:
         return Colors.orange;
       case OrderStatus.accepted:
@@ -368,6 +396,13 @@ class _HomeTab extends StatelessWidget {
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }
+
+  String _paymentReminderText(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    return locale.languageCode == 'ru'
+        ? 'Для активации заказа оплатите сервисный сбор (10 %).'
+        : 'Pay the 10% service fee to activate your order.';
+  }
 }
 
 class _OrdersTab extends StatelessWidget {
@@ -383,15 +418,16 @@ class _OrdersTab extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         if (snapshot.hasError) {
           return Center(
-            child: Text('${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
+            child: Text(
+                '${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
           );
         }
-        
+
         final orders = snapshot.data ?? [];
-        
+
         if (orders.isEmpty) {
           return Center(
             child: Column(
@@ -416,7 +452,7 @@ class _OrdersTab extends StatelessWidget {
             ),
           );
         }
-        
+
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: orders.length,
@@ -469,9 +505,9 @@ class _OrdersTab extends StatelessWidget {
                   Text(
                     orderStatusText(context, order.status),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: _getStatusColor(order.status),
-                      fontWeight: FontWeight.w600,
-                    ),
+                          color: _getStatusColor(order.status),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ],
               ),
@@ -488,7 +524,7 @@ class _OrdersTab extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(width: 8),
-                  PriceDisplay(price: order.price, showLabel: false),
+                  PriceDisplay(price: order.total, showLabel: false),
                 ],
               ),
               if (order.notes != null && order.notes!.isNotEmpty) ...[
@@ -509,6 +545,10 @@ class _OrdersTab extends StatelessWidget {
 
   Color _getStatusColor(OrderStatus status) {
     switch (status) {
+      case OrderStatus.processing:
+        return Colors.orange;
+      case OrderStatus.paid:
+        return Colors.green;
       case OrderStatus.pending:
         return Colors.orange;
       case OrderStatus.accepted:
@@ -533,7 +573,7 @@ class _ProfileTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -564,27 +604,34 @@ class _ProfileTab extends StatelessWidget {
                   Text(
                     AppLocalizations.of(context)!.roleCustomer,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                    future: FirebaseFirestore.instance.collection('users').doc(user?.uid).get(),
+                    future: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(user?.uid)
+                        .get(),
                     builder: (context, snap) {
                       if (snap.connectionState != ConnectionState.done) {
                         return const SizedBox.shrink();
                       }
                       final data = snap.data?.data() ?? {};
-                      final fullName = (data['fullName'] ?? data['name'] ?? '').toString();
+                      final fullName =
+                          (data['fullName'] ?? data['name'] ?? '').toString();
                       final phone = (data['phone'] ?? '').toString();
-                      if (fullName.isEmpty && phone.isEmpty) return const SizedBox.shrink();
+                      if (fullName.isEmpty && phone.isEmpty)
+                        return const SizedBox.shrink();
                       return Column(
                         children: [
                           if (fullName.isNotEmpty)
-                            Text(fullName, style: Theme.of(context).textTheme.titleMedium),
+                            Text(fullName,
+                                style: Theme.of(context).textTheme.titleMedium),
                           if (phone.isNotEmpty) ...[
                             const SizedBox(height: 4),
-                            Text(phone, style: Theme.of(context).textTheme.bodyMedium),
+                            Text(phone,
+                                style: Theme.of(context).textTheme.bodyMedium),
                           ],
                         ],
                       );
@@ -594,9 +641,7 @@ class _ProfileTab extends StatelessWidget {
               ),
             ),
           ),
-          
           const SizedBox(height: 24),
-          
           Card(
             child: Column(
               children: [
@@ -608,7 +653,8 @@ class _ProfileTab extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const ProfileSettingsScreen(role: 'customer'),
+                        builder: (_) =>
+                            const ProfileSettingsScreen(role: 'customer'),
                       ),
                     );
                   },

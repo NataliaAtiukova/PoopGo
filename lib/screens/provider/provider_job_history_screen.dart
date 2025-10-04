@@ -76,7 +76,7 @@ class _CompletedOrderTile extends StatelessWidget {
                 const Icon(Icons.done_all, color: Colors.green),
                 const SizedBox(width: 8),
                 Expanded(child: Text(order.address, style: Theme.of(context).textTheme.titleMedium)),
-                PriceDisplay(price: order.price, showLabel: false),
+                PriceDisplay(price: order.total, showLabel: false),
               ],
             ),
             const SizedBox(height: 6),

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
@@ -5,6 +6,8 @@ import 'package:uuid/uuid.dart';
 
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
+import '../../services/local_order_store.dart';
+import '../payment/payment_info_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class BookingFormScreen extends StatefulWidget {
@@ -15,17 +18,22 @@ class BookingFormScreen extends StatefulWidget {
 }
 
 class _BookingFormScreenState extends State<BookingFormScreen> {
+  static const List<Map<String, dynamic>> _paymentOptions = [
+    {'value': 'card', 'icon': Icons.credit_card},
+    {'value': 'cash', 'icon': Icons.attach_money},
+  ];
+
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
   final _volumeController = TextEditingController();
   final _notesController = TextEditingController();
   final _priceController = TextEditingController();
-  
+
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
   final List<XFile> _selectedImages = [];
   bool _isLoading = false;
-  String? _selectedPaymentMethod;
+  String? _selectedPaymentMethod = 'card';
 
   @override
   void dispose() {
@@ -43,7 +51,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 30)),
     );
-    
+
     if (date != null) {
       setState(() => _selectedDate = date);
     }
@@ -54,7 +62,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       context: context,
       initialTime: _selectedTime,
     );
-    
+
     if (time != null) {
       setState(() => _selectedTime = time);
     }
@@ -63,7 +71,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   Future<void> _pickImages() async {
     final picker = ImagePicker();
     final images = await picker.pickMultiImage();
-    
+
     if (images.isNotEmpty) {
       setState(() {
         _selectedImages.addAll(images);
@@ -77,6 +85,20 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
     });
   }
 
+  String _cardPaymentLabel(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
+    return locale == 'ru'
+        ? 'Оплата картой онлайн'
+        : 'Online card payment';
+  }
+
+  String _serviceFeeNote(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
+    return locale == 'ru'
+        ? 'Сервисный сбор 10 % включён в итоговую стоимость.'
+        : 'A 10% service fee is included in the total price.';
+  }
+
   Future<void> _submitOrder() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -87,7 +109,8 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       if (user == null) throw Exception('User not authenticated');
 
       // Create order
-      final orderId = const Uuid().v4();
+      final docId = const Uuid().v4();
+      final orderNumber = 'poopgo_${DateTime.now().millisecondsSinceEpoch}';
       final requestedDateTime = DateTime(
         _selectedDate.year,
         _selectedDate.month,
@@ -99,29 +122,65 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       // Upload images if any
       List<String> imageUrls = [];
       if (_selectedImages.isNotEmpty) {
-        imageUrls = await FirebaseService.uploadMultipleImages(_selectedImages, orderId);
+        imageUrls =
+            await FirebaseService.uploadMultipleImages(_selectedImages, docId);
       }
 
+      final paymentMethod = _selectedPaymentMethod ?? 'card';
+      final amount = double.parse(_priceController.text);
+      final serviceFee = double.parse((amount * 0.10).toStringAsFixed(2));
+      final totalWithFee =
+          double.parse((amount + serviceFee).toStringAsFixed(2));
+
       final order = Order(
-        id: orderId,
+        id: docId,
         customerId: user.uid,
         address: _addressController.text.trim(),
         latitude: 0.0, // TODO: Get from location service
         longitude: 0.0, // TODO: Get from location service
         requestedDate: requestedDateTime,
-        status: OrderStatus.pending,
-        notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        status: OrderStatus.processing,
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
         volume: double.parse(_volumeController.text),
         imageUrls: imageUrls,
         createdAt: DateTime.now(),
-        price: double.parse(_priceController.text),
+        price: amount,
+        serviceFee: serviceFee,
+        total: totalWithFee,
         isPaid: false,
-        paymentMethod: _selectedPaymentMethod,
+        paymentMethod: paymentMethod,
+        orderId: orderNumber,
       );
 
-      await FirebaseService.createOrder(order);
+      final createdId = await FirebaseService.createOrder(order);
+      await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(createdId)
+          .update({
+        'userId': user.uid,
+        'amount': amount,
+        'serviceFee': serviceFee,
+        'total': totalWithFee,
+        'paymentMethod': paymentMethod,
+        'isPaid': false,
+        'serviceFeePaid': false,
+        'status': 'processing',
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      await LocalOrderStore.instance.saveOrder(order.copyWith(id: createdId));
 
-      if (mounted) {
+      if (!mounted) return;
+
+      if (paymentMethod == 'card') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PaymentInfoScreen(orderId: createdId),
+          ),
+        );
+      } else {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -145,7 +204,8 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
           context: context,
           builder: (context) => AlertDialog(
             title: Text(AppLocalizations.of(context)!.error),
-            content: Text('${AppLocalizations.of(context)!.error}: ${e.toString()}'),
+            content:
+                Text('${AppLocalizations.of(context)!.error}: ${e.toString()}'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -156,7 +216,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -186,14 +246,15 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 maxLines: 2,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return AppLocalizations.of(context)!.pleaseEnterPickupAddress;
+                    return AppLocalizations.of(context)!
+                        .pleaseEnterPickupAddress;
                   }
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Date and Time
               Row(
                 children: [
@@ -211,9 +272,12 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                           children: [
                             Text(
                               AppLocalizations.of(context)!.date,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey[400],
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Colors.grey[400],
+                                  ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -240,9 +304,12 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                           children: [
                             Text(
                               AppLocalizations.of(context)!.time,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey[400],
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Colors.grey[400],
+                                  ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -256,9 +323,9 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Volume
               TextFormField(
                 controller: _volumeController,
@@ -279,9 +346,9 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Price
               TextFormField(
                 controller: _priceController,
@@ -302,9 +369,9 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Payment Method
               DropdownButtonFormField<String>(
                 value: _selectedPaymentMethod,
@@ -312,38 +379,25 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   labelText: AppLocalizations.of(context)!.choosePaymentMethod,
                   prefixIcon: const Icon(Icons.payment),
                 ),
-                items: [
-                  DropdownMenuItem(
-                    value: 'Cash',
+                items: _paymentOptions.map((option) {
+                  final value = option['value'] as String;
+                  final icon = option['icon'] as IconData;
+                  final label = value == 'card'
+                      ? _cardPaymentLabel(context)
+                      : AppLocalizations.of(context)!.cashPayment;
+                  return DropdownMenuItem(
+                    value: value,
                     child: Row(
                       children: [
-                        Icon(Icons.money, color: Colors.green),
-                        SizedBox(width: 8),
-                        Text(AppLocalizations.of(context)!.cashPayment),
+                        Icon(icon,
+                            color:
+                                value == 'card' ? Colors.blue : Colors.green),
+                        const SizedBox(width: 8),
+                        Text(label),
                       ],
                     ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Bank Transfer',
-                    child: Row(
-                      children: [
-                        Icon(Icons.account_balance, color: Colors.grey),
-                        SizedBox(width: 8),
-                        Text(AppLocalizations.of(context)!.bankTransfer),
-                      ],
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Card on Completion',
-                    child: Row(
-                      children: [
-                        Icon(Icons.credit_card, color: Colors.blue),
-                        SizedBox(width: 8),
-                        Text(AppLocalizations.of(context)!.cardOnCompletion),
-                      ],
-                    ),
-                  ),
-                ],
+                  );
+                }).toList(),
                 onChanged: (value) {
                   setState(() {
                     _selectedPaymentMethod = value;
@@ -356,24 +410,36 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   return null;
                 },
               ),
-              
+
+              if (_selectedPaymentMethod != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _serviceFeeNote(context),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: Colors.grey[600]),
+                ),
+              ],
+
               const SizedBox(height: 16),
-              
+
               // Notes
               TextFormField(
                 controller: _notesController,
                 textDirection: TextDirection.ltr,
                 style: const TextStyle(fontFamily: 'Roboto'),
                 decoration: InputDecoration(
-                  labelText: '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})',
+                  labelText:
+                      '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})',
                   hintText: AppLocalizations.of(context)!.notes,
                   prefixIcon: Icon(Icons.note),
                 ),
                 maxLines: 3,
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Photos
               Card(
                 child: Padding(
@@ -395,8 +461,8 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                       Text(
                         AppLocalizations.of(context)!.addPhotosHint,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[400],
-                        ),
+                              color: Colors.grey[400],
+                            ),
                       ),
                       const SizedBox(height: 16),
                       OutlinedButton.icon(
@@ -423,7 +489,8 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                                         width: 100,
                                         height: 100,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
                                           return Container(
                                             width: 100,
                                             height: 100,
@@ -463,9 +530,9 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Submit Button
               ElevatedButton(
                 onPressed: _isLoading ? null : _submitOrder,
@@ -477,7 +544,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                       )
                     : Text(AppLocalizations.of(context)!.submitRequest),
               ),
-              
+
               const SizedBox(height: 16),
             ],
           ),

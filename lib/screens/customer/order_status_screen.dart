@@ -7,10 +7,9 @@ import 'order_edit_screen.dart';
 import '../../widgets/payment_method_display.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../utils/l10n.dart';
-import '../../utils/money.dart';
 import '../../utils/format.dart' as fmt;
 import '../../widgets/service_fee_modal.dart';
-import '../payment/payment_screen.dart';
+import '../payment/payment_info_screen.dart';
 
 class OrderStatusScreen extends StatefulWidget {
   final String orderId;
@@ -171,7 +170,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                         const Divider(),
                         _buildDetailRow(
                             AppLocalizations.of(context)!.totalPrice,
-                            '${_order!.price.toStringAsFixed(0)} ₽',
+                          '${_order!.total.toStringAsFixed(0)} ₽',
                             Icons.currency_ruble),
                         const Divider(),
                         _buildDetailWidgetRow(
@@ -265,7 +264,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                         children: [
                           _buildPaymentRow(
                               AppLocalizations.of(context)!.totalPrice,
-                              '${_order!.price.toStringAsFixed(2)} ₽',
+                              '${_order!.total.toStringAsFixed(2)} ₽',
                               Icons.currency_ruble),
                           const Divider(),
                           _buildPaymentRow(
@@ -284,8 +283,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (_) =>
-                                          PaymentScreen(orderId: _order!.id),
+                                      builder: (_) => PaymentInfoScreen(
+                                          orderId: _order!.id),
                                     ),
                                   );
                                 },
@@ -361,6 +360,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
   Color _getStatusColor(OrderStatus status) {
     switch (status) {
+      case OrderStatus.processing:
+        return Colors.orange;
+      case OrderStatus.paid:
+        return Colors.green;
       case OrderStatus.pending:
         return Colors.orange;
       case OrderStatus.accepted:
@@ -376,6 +379,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
   IconData _getStatusIcon(OrderStatus status) {
     switch (status) {
+      case OrderStatus.processing:
+        return Icons.watch_later;
+      case OrderStatus.paid:
+        return Icons.verified_user;
       case OrderStatus.pending:
         return Icons.schedule;
       case OrderStatus.accepted:
@@ -392,6 +399,14 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   String _getStatusDescription(OrderStatus status) {
     final l = AppLocalizations.of(context)!;
     switch (status) {
+      case OrderStatus.processing:
+        return _localizedText(context,
+            ru: 'Оплата ожидает подтверждения.',
+            en: 'Payment is pending confirmation.');
+      case OrderStatus.paid:
+        return _localizedText(context,
+            ru: 'Заказ оплачен и доступен для исполнителей.',
+            en: 'The order is paid and visible to drivers.');
       case OrderStatus.pending:
         return l.statusDescPending;
       case OrderStatus.accepted:
@@ -416,7 +431,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
   bool _shouldPromptCommission() {
     if (_order == null) return false;
-    return _order!.status == OrderStatus.accepted &&
+    return _order!.status == OrderStatus.processing &&
         _order!.serviceFeePaid == false;
   }
 
@@ -671,9 +686,14 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     );
   }
 
-  String _feeText() =>
-      '${calculateServiceFee(_order!.price).toStringAsFixed(2)} ₽';
+  String _feeText() => '${_order!.serviceFee.toStringAsFixed(2)} ₽';
 
   // Payment dialog flows for test/manual payment were removed in favor of
   // unified Service Fee modal and CloudPayments flow.
+}
+
+String _localizedText(BuildContext context,
+    {required String ru, required String en}) {
+  final locale = Localizations.localeOf(context);
+  return locale.languageCode == 'ru' ? ru : en;
 }

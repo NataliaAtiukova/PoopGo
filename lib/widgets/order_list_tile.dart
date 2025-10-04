@@ -16,7 +16,11 @@ class OrderListTile extends StatelessWidget {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('${DateFormat.yMMMd().add_jm().format(order.requestedDate)} • ${order.volume}L'),
+          Text('ID: ${order.orderId}',
+              style: Theme.of(context).textTheme.labelSmall),
+          const SizedBox(height: 4),
+          Text(
+              '${DateFormat.yMMMd().add_jm().format(order.requestedDate)} • ${order.volume}L'),
           const SizedBox(height: 4),
           Row(
             children: [
@@ -27,11 +31,11 @@ class OrderListTile extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               Text(
-                '${order.price.toStringAsFixed(0)} ₽',
+                '${order.total.toStringAsFixed(0)} ₽',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(width: 8),
               PaymentMethodDisplay(
@@ -56,6 +60,8 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (status) {
+      OrderStatus.processing => Colors.orange,
+      OrderStatus.paid => Colors.green,
       OrderStatus.pending => Colors.orange,
       OrderStatus.accepted => Colors.blue,
       OrderStatus.onTheWay => Colors.purple,
@@ -63,7 +69,8 @@ class _StatusChip extends StatelessWidget {
       OrderStatus.cancelled => Colors.red,
     };
     return Chip(
-      label: Builder(builder: (context) => Text(orderStatusText(context, status))),
+      label:
+          Builder(builder: (context) => Text(orderStatusText(context, status))),
       backgroundColor: color.withValues(alpha: .15),
       labelStyle: TextStyle(color: color),
     );

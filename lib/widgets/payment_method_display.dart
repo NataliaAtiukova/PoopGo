@@ -56,7 +56,9 @@ class PaymentMethodDisplay extends StatelessWidget {
               const SizedBox(width: 4),
               // Constrain and ellipsize long labels like "Картой по завершении"
               ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: math.max(0.0, constraints.maxWidth - iconSize - 8)),
+                constraints: BoxConstraints(
+                    maxWidth:
+                        math.max(0.0, constraints.maxWidth - iconSize - 8)),
                 child: Text(
                   localizedLabel,
                   maxLines: 1,
@@ -83,6 +85,11 @@ class PaymentMethodDisplay extends StatelessWidget {
           icon: Icons.money,
           color: Colors.green,
         );
+      case 'card':
+        return PaymentMethodData(
+          icon: Icons.credit_card,
+          color: Colors.blue,
+        );
       // Bank transfer removed from available options
       case 'card on completion':
         return PaymentMethodData(
@@ -102,6 +109,8 @@ class PaymentMethodDisplay extends StatelessWidget {
     switch (method.toLowerCase()) {
       case 'cash':
         return l.cashPayment;
+      case 'card':
+        return _cardPaymentLabel(context);
       case 'bank transfer':
         return l.bankTransfer;
       case 'card on completion':
@@ -109,6 +118,13 @@ class PaymentMethodDisplay extends StatelessWidget {
       default:
         return method;
     }
+  }
+
+  String _cardPaymentLabel(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
+    return locale == 'ru'
+        ? 'Оплата картой онлайн'
+        : 'Online card payment';
   }
 }
 

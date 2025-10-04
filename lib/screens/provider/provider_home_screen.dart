@@ -85,15 +85,16 @@ class _AvailableJobsTab extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         if (snapshot.hasError) {
           return Center(
-            child: Text('${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
+            child: Text(
+                '${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
           );
         }
-        
+
         final orders = snapshot.data ?? [];
-        
+
         if (orders.isEmpty) {
           return Center(
             child: Column(
@@ -119,7 +120,7 @@ class _AvailableJobsTab extends StatelessWidget {
             ),
           );
         }
-        
+
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: orders.length,
@@ -162,7 +163,7 @@ class _AvailableJobsTab extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    PriceDisplay(price: order.price, showLabel: false),
+                    PriceDisplay(price: order.total, showLabel: false),
                     const SizedBox(height: 4),
                     PaymentMethodDisplay(
                       paymentMethod: order.paymentMethod,
@@ -224,14 +225,14 @@ class _AvailableJobsTab extends StatelessWidget {
         OrderStatus.accepted,
         providerId: FirebaseAuth.instance.currentUser!.uid,
       );
-      
+
       // Send notification to customer
       await FirebaseService.sendNotificationToUser(
         order.customerId,
         AppLocalizations.of(context)!.notifOrderAcceptedTitle,
         AppLocalizations.of(context)!.notifOrderAcceptedBody,
       );
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -282,15 +283,16 @@ class _MyJobsTab extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         if (snapshot.hasError) {
           return Center(
-            child: Text('${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
+            child: Text(
+                '${AppLocalizations.of(context)!.error}: ${snapshot.error}'),
           );
         }
-        
+
         final orders = snapshot.data ?? [];
-        
+
         if (orders.isEmpty) {
           return Center(
             child: Column(
@@ -315,7 +317,7 @@ class _MyJobsTab extends StatelessWidget {
             ),
           );
         }
-        
+
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: orders.length,
@@ -364,9 +366,9 @@ class _MyJobsTab extends StatelessWidget {
                   Text(
                     orderStatusText(context, order.status),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: _getStatusColor(order.status),
-                      fontWeight: FontWeight.w600,
-                    ),
+                          color: _getStatusColor(order.status),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ],
               ),
@@ -383,7 +385,7 @@ class _MyJobsTab extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(width: 8),
-                  PriceDisplay(price: order.price, showLabel: false),
+                  PriceDisplay(price: order.total, showLabel: false),
                 ],
               ),
               const SizedBox(height: 6),
@@ -419,16 +421,17 @@ class _MyJobsTab extends StatelessWidget {
               ),
               if (order.notes != null && order.notes!.isNotEmpty) ...[
                 const SizedBox(height: 8),
-              Text(
-                '${AppLocalizations.of(context)!.notes}: ${order.notes}',
-                style: Theme.of(context).textTheme.bodyMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+                Text(
+                  '${AppLocalizations.of(context)!.notes}: ${order.notes}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
               const SizedBox(height: 8),
               ServiceFeeNotice(
-                onTap: () => Navigator.pushNamed(context, Routes.servicesPayment),
+                onTap: () =>
+                    Navigator.pushNamed(context, Routes.servicesPayment),
               ),
               const SizedBox(height: 12),
               Row(
@@ -437,13 +440,16 @@ class _MyJobsTab extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: () {
                         final canChat = order.serviceFeePaid &&
-                            (order.status == OrderStatus.onTheWay || order.status == OrderStatus.completed);
+                            (order.status == OrderStatus.onTheWay ||
+                                order.status == OrderStatus.completed);
                         if (!canChat) {
                           showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
-                              title: Text(AppLocalizations.of(context)!.chatLockedTitle),
-                              content: Text(AppLocalizations.of(context)!.chatLockedMessage),
+                              title: Text(AppLocalizations.of(context)!
+                                  .chatLockedTitle),
+                              content: Text(AppLocalizations.of(context)!
+                                  .chatLockedMessage),
                             ),
                           );
                           return;
@@ -463,7 +469,8 @@ class _MyJobsTab extends StatelessWidget {
                   if (order.status == OrderStatus.accepted)
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () => _updateStatus(context, order, OrderStatus.onTheWay),
+                        onPressed: () =>
+                            _updateStatus(context, order, OrderStatus.onTheWay),
                         icon: const Icon(Icons.local_shipping),
                         label: Text(AppLocalizations.of(context)!.start),
                       ),
@@ -471,7 +478,8 @@ class _MyJobsTab extends StatelessWidget {
                   if (order.status == OrderStatus.onTheWay)
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () => _updateStatus(context, order, OrderStatus.completed),
+                        onPressed: () => _updateStatus(
+                            context, order, OrderStatus.completed),
                         icon: const Icon(Icons.check),
                         label: Text(AppLocalizations.of(context)!.complete),
                       ),
@@ -485,7 +493,8 @@ class _MyJobsTab extends StatelessWidget {
     );
   }
 
-  Future<void> _updateStatus(BuildContext context, Order order, OrderStatus newStatus) async {
+  Future<void> _updateStatus(
+      BuildContext context, Order order, OrderStatus newStatus) async {
     try {
       // Refresh current order to ensure up-to-date status/payment
       final current = await FirebaseService.getOrderById(order.id) ?? order;
@@ -493,7 +502,8 @@ class _MyJobsTab extends StatelessWidget {
       // Enforce linear flow and commission requirement
       if (newStatus == OrderStatus.onTheWay) {
         if (current.status != OrderStatus.accepted) {
-          await _showAlert(context, AppLocalizations.of(context)!.invalidStatus, AppLocalizations.of(context)!.mustAcceptBeforeStart);
+          await _showAlert(context, AppLocalizations.of(context)!.invalidStatus,
+              AppLocalizations.of(context)!.mustAcceptBeforeStart);
           return;
         }
         if (current.serviceFeePaid == false) {
@@ -507,17 +517,18 @@ class _MyJobsTab extends StatelessWidget {
       }
       if (newStatus == OrderStatus.completed) {
         if (current.status != OrderStatus.onTheWay) {
-          await _showAlert(context, AppLocalizations.of(context)!.invalidStatus, AppLocalizations.of(context)!.completeFlowHint);
+          await _showAlert(context, AppLocalizations.of(context)!.invalidStatus,
+              AppLocalizations.of(context)!.completeFlowHint);
           return;
         }
       }
 
       await FirebaseService.updateOrderStatus(current.id, newStatus);
-      
+
       // Send notification to customer
       String title = '';
       String body = '';
-      
+
       switch (newStatus) {
         case OrderStatus.onTheWay:
           title = AppLocalizations.of(context)!.notifOnTheWayTitle;
@@ -530,15 +541,17 @@ class _MyJobsTab extends StatelessWidget {
         default:
           break;
       }
-      
+
       if (title.isNotEmpty) {
-        await FirebaseService.sendNotificationToUser(order.customerId, title, body);
+        await FirebaseService.sendNotificationToUser(
+            order.customerId, title, body);
       }
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.statusUpdatedTo(orderStatusText(context, newStatus))),
+            content: Text(AppLocalizations.of(context)!
+                .statusUpdatedTo(orderStatusText(context, newStatus))),
             backgroundColor: Colors.green,
           ),
         );
@@ -555,7 +568,8 @@ class _MyJobsTab extends StatelessWidget {
     }
   }
 
-  Future<void> _showAlert(BuildContext context, String title, String message) async {
+  Future<void> _showAlert(
+      BuildContext context, String title, String message) async {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -610,35 +624,73 @@ class _MyJobsTab extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildDetailRow(context, AppLocalizations.of(context)!.address, o.address, Icons.location_on),
-                          _buildDetailRow(context, AppLocalizations.of(context)!.volume, '${o.volume}L', Icons.water_drop),
-                          _buildDetailRow(context, AppLocalizations.of(context)!.date, _formatDate(o.requestedDate), Icons.calendar_today),
-                          _buildDetailRow(context, AppLocalizations.of(context)!.orderStatus, orderStatusText(context, o.status), Icons.info),
-                          _buildDetailRow(context, AppLocalizations.of(context)!.totalPrice, '${o.price.toStringAsFixed(0)} ₽', Icons.currency_ruble),
-                          _buildDetailRow(context, AppLocalizations.of(context)!.paymentStatus, o.isPaid ? AppLocalizations.of(context)!.paid : AppLocalizations.of(context)!.pending, Icons.verified),
-                          _buildDetailRow(context, AppLocalizations.of(context)!.method, _paymentMethodText(context, o.paymentMethod), Icons.payment),
+                          _buildDetailRow(
+                              context,
+                              AppLocalizations.of(context)!.address,
+                              o.address,
+                              Icons.location_on),
+                          _buildDetailRow(
+                              context,
+                              AppLocalizations.of(context)!.volume,
+                              '${o.volume}L',
+                              Icons.water_drop),
+                          _buildDetailRow(
+                              context,
+                              AppLocalizations.of(context)!.date,
+                              _formatDate(o.requestedDate),
+                              Icons.calendar_today),
+                          _buildDetailRow(
+                              context,
+                              AppLocalizations.of(context)!.orderStatus,
+                              orderStatusText(context, o.status),
+                              Icons.info),
+                          _buildDetailRow(
+                              context,
+                              AppLocalizations.of(context)!.totalPrice,
+                              '${o.price.toStringAsFixed(0)} ₽',
+                              Icons.currency_ruble),
+                          _buildDetailRow(
+                              context,
+                              AppLocalizations.of(context)!.paymentStatus,
+                              o.isPaid
+                                  ? AppLocalizations.of(context)!.paid
+                                  : AppLocalizations.of(context)!.pending,
+                              Icons.verified),
+                          _buildDetailRow(
+                              context,
+                              AppLocalizations.of(context)!.method,
+                              _paymentMethodText(context, o.paymentMethod),
+                              Icons.payment),
                           if (o.notes != null && o.notes!.isNotEmpty)
-                            _buildDetailRow(context, AppLocalizations.of(context)!.notes, o.notes!, Icons.note),
+                            _buildDetailRow(
+                                context,
+                                AppLocalizations.of(context)!.notes,
+                                o.notes!,
+                                Icons.note),
                           const SizedBox(height: 12),
-                          if (o.serviceFeePaid) FutureBuilder<Map<String, dynamic>?>(
-                            future: FirebaseService.getUserContact(o.customerId),
-                            builder: (context, contactSnap) {
-                              if (contactSnap.connectionState != ConnectionState.done) {
-                                return const SizedBox.shrink();
-                              }
-                              final data = contactSnap.data ?? {};
-                              final name = data['fullName'] ?? data['name'] ?? '-';
-                              final phone = data['phone'] ?? '-';
-                              return Card(
-                                child: ListTile(
-                                  leading: const Icon(Icons.person),
-                                  title: Text(name),
-                                  subtitle: Text(phone),
-                                  trailing: const Icon(Icons.phone),
-                                ),
-                              );
-                            },
-                          ),
+                          if (o.serviceFeePaid)
+                            FutureBuilder<Map<String, dynamic>?>(
+                              future:
+                                  FirebaseService.getUserContact(o.customerId),
+                              builder: (context, contactSnap) {
+                                if (contactSnap.connectionState !=
+                                    ConnectionState.done) {
+                                  return const SizedBox.shrink();
+                                }
+                                final data = contactSnap.data ?? {};
+                                final name =
+                                    data['fullName'] ?? data['name'] ?? '-';
+                                final phone = data['phone'] ?? '-';
+                                return Card(
+                                  child: ListTile(
+                                    leading: const Icon(Icons.person),
+                                    title: Text(name),
+                                    subtitle: Text(phone),
+                                    trailing: const Icon(Icons.phone),
+                                  ),
+                                );
+                              },
+                            ),
                         ],
                       ),
                     ),
@@ -652,7 +704,8 @@ class _MyJobsTab extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(BuildContext context, String label, String value, IconData icon) {
+  Widget _buildDetailRow(
+      BuildContext context, String label, String value, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -670,8 +723,8 @@ class _MyJobsTab extends StatelessWidget {
                 Text(
                   label,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[400],
-                  ),
+                        color: Colors.grey[400],
+                      ),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -691,6 +744,8 @@ class _MyJobsTab extends StatelessWidget {
     switch (method.toLowerCase()) {
       case 'cash':
         return AppLocalizations.of(context)!.cashPayment;
+      case 'card':
+        return _cardPaymentLabel(context);
       case 'bank transfer':
         return AppLocalizations.of(context)!.bankTransfer;
       case 'card on completion':
@@ -700,8 +755,19 @@ class _MyJobsTab extends StatelessWidget {
     }
   }
 
+  String _cardPaymentLabel(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
+    return locale == 'ru'
+        ? 'Оплата картой онлайн'
+        : 'Online card payment';
+  }
+
   Color _getStatusColor(OrderStatus status) {
     switch (status) {
+      case OrderStatus.processing:
+        return Colors.orange;
+      case OrderStatus.paid:
+        return Colors.green;
       case OrderStatus.pending:
         return Colors.orange;
       case OrderStatus.accepted:
@@ -726,7 +792,7 @@ class _ProfileTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -757,12 +823,15 @@ class _ProfileTab extends StatelessWidget {
                   Text(
                     AppLocalizations.of(context)!.roleProvider,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                    future: FirebaseFirestore.instance.collection('providers').doc(user?.uid).get(),
+                    future: FirebaseFirestore.instance
+                        .collection('providers')
+                        .doc(user?.uid)
+                        .get(),
                     builder: (context, snap) {
                       if (snap.connectionState != ConnectionState.done) {
                         return const SizedBox.shrink();
@@ -770,14 +839,17 @@ class _ProfileTab extends StatelessWidget {
                       final data = snap.data?.data() ?? {};
                       final fullName = (data['fullName'] ?? '').toString();
                       final phone = (data['phone'] ?? '').toString();
-                      if (fullName.isEmpty && phone.isEmpty) return const SizedBox.shrink();
+                      if (fullName.isEmpty && phone.isEmpty)
+                        return const SizedBox.shrink();
                       return Column(
                         children: [
                           if (fullName.isNotEmpty)
-                            Text(fullName, style: Theme.of(context).textTheme.titleMedium),
+                            Text(fullName,
+                                style: Theme.of(context).textTheme.titleMedium),
                           if (phone.isNotEmpty) ...[
                             const SizedBox(height: 4),
-                            Text(phone, style: Theme.of(context).textTheme.bodyMedium),
+                            Text(phone,
+                                style: Theme.of(context).textTheme.bodyMedium),
                           ],
                         ],
                       );
@@ -787,9 +859,7 @@ class _ProfileTab extends StatelessWidget {
               ),
             ),
           ),
-          
           const SizedBox(height: 24),
-          
           Card(
             child: Column(
               children: [
@@ -801,7 +871,8 @@ class _ProfileTab extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const ProfileSettingsScreen(role: 'provider'),
+                        builder: (_) =>
+                            const ProfileSettingsScreen(role: 'provider'),
                       ),
                     );
                   },

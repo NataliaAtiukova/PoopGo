@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,12 +17,17 @@ class OrderEditScreen extends StatefulWidget {
 }
 
 class _OrderEditScreenState extends State<OrderEditScreen> {
+  static const List<Map<String, dynamic>> _paymentOptions = [
+    {'value': 'card', 'icon': Icons.credit_card},
+    {'value': 'cash', 'icon': Icons.attach_money},
+  ];
+
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
   final _volumeController = TextEditingController();
   final _notesController = TextEditingController();
   final _priceController = TextEditingController();
-  
+
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
   final List<XFile> _selectedImages = [];
@@ -41,7 +47,8 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
     _priceController.text = widget.order.price.toString();
     _selectedDate = widget.order.requestedDate;
     _selectedTime = TimeOfDay.fromDateTime(widget.order.requestedDate);
-    _selectedPaymentMethod = widget.order.paymentMethod;
+    _selectedPaymentMethod =
+        _normalizePaymentMethod(widget.order.paymentMethod);
   }
 
   @override
@@ -53,6 +60,29 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
     super.dispose();
   }
 
+  String? _normalizePaymentMethod(String? method) {
+    if (method == null) return null;
+    final value = method.toLowerCase();
+    if (value.contains('cash')) return 'cash';
+    if (value.contains('card')) return 'card';
+    if (value.contains('bank')) return 'card';
+    return method;
+  }
+
+  String _cardPaymentLabel(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
+    return locale == 'ru'
+        ? 'Оплата картой онлайн'
+        : 'Online card payment';
+  }
+
+  String _serviceFeeNote(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
+    return locale == 'ru'
+        ? 'Сервисный сбор 10 % включён в итоговую стоимость.'
+        : 'A 10% service fee is included in the total price.';
+  }
+
   Future<void> _selectDate() async {
     final date = await showDatePicker(
       context: context,
@@ -60,7 +90,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 30)),
     );
-    
+
     if (date != null) {
       setState(() => _selectedDate = date);
     }
@@ -71,7 +101,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
       context: context,
       initialTime: _selectedTime,
     );
-    
+
     if (time != null) {
       setState(() => _selectedTime = time);
     }
@@ -80,7 +110,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
   Future<void> _pickImages() async {
     final picker = ImagePicker();
     final images = await picker.pickMultiImage();
-    
+
     if (images.isNotEmpty) {
       setState(() {
         _selectedImages.addAll(images);
@@ -106,7 +136,8 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
       // Upload new images if any
       List<String> imageUrls = List.from(widget.order.imageUrls);
       if (_selectedImages.isNotEmpty) {
-        final newImageUrls = await FirebaseService.uploadMultipleImages(_selectedImages, widget.order.id);
+        final newImageUrls = await FirebaseService.uploadMultipleImages(
+            _selectedImages, widget.order.id);
         imageUrls.addAll(newImageUrls);
       }
 
@@ -118,25 +149,44 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
         _selectedTime.minute,
       );
 
+      final paymentMethod = _selectedPaymentMethod ?? 'card';
+      final amount = double.parse(_priceController.text);
+      final serviceFee = double.parse((amount * 0.10).toStringAsFixed(2));
+      final totalWithFee =
+          double.parse((amount + serviceFee).toStringAsFixed(2));
+
       final updatedOrder = widget.order.copyWith(
         address: _addressController.text.trim(),
         requestedDate: requestedDateTime,
-        notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
         volume: double.parse(_volumeController.text),
         imageUrls: imageUrls,
-        price: double.parse(_priceController.text),
-        paymentMethod: _selectedPaymentMethod,
+        price: totalWithFee,
+        paymentMethod: paymentMethod,
         updatedAt: DateTime.now(),
       );
 
       await FirebaseService.updateOrder(updatedOrder);
+      await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(widget.order.id)
+          .update({
+        'amount': amount,
+        'serviceFee': serviceFee,
+        'total': totalWithFee,
+        'paymentMethod': paymentMethod,
+        'status': paymentMethod == 'cash' ? 'pendingCash' : 'pending',
+      });
 
       if (mounted) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: Text(AppLocalizations.of(context)!.success),
-            content: Text(AppLocalizations.of(context)!.orderUpdatedSuccessfully),
+            content:
+                Text(AppLocalizations.of(context)!.orderUpdatedSuccessfully),
             actions: [
               TextButton(
                 onPressed: () {
@@ -155,7 +205,8 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
           context: context,
           builder: (context) => AlertDialog(
             title: Text(AppLocalizations.of(context)!.error),
-            content: Text(AppLocalizations.of(context)!.failedToUpdateOrder(e.toString())),
+            content: Text(AppLocalizations.of(context)!
+                .failedToUpdateOrder(e.toString())),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -166,7 +217,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -222,9 +273,9 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                     ),
                   ),
                 ),
-              
+
               if (!widget.order.isEditable) const SizedBox(height: 16),
-              
+
               // Address
               TextFormField(
                 controller: _addressController,
@@ -232,21 +283,23 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                 style: const TextStyle(fontFamily: 'Roboto'),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.address,
-                  hintText: AppLocalizations.of(context)!.pleaseEnterPickupAddress,
+                  hintText:
+                      AppLocalizations.of(context)!.pleaseEnterPickupAddress,
                   prefixIcon: const Icon(Icons.location_on),
                 ),
                 maxLines: 2,
                 readOnly: !widget.order.isEditable,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return AppLocalizations.of(context)!.pleaseEnterPickupAddress;
+                    return AppLocalizations.of(context)!
+                        .pleaseEnterPickupAddress;
                   }
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Date and Time
               Row(
                 children: [
@@ -264,9 +317,12 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                           children: [
                             Text(
                               AppLocalizations.of(context)!.date,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey[400],
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Colors.grey[400],
+                                  ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -293,9 +349,12 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                           children: [
                             Text(
                               AppLocalizations.of(context)!.time,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey[400],
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Colors.grey[400],
+                                  ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -309,9 +368,9 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Volume
               TextFormField(
                 controller: _volumeController,
@@ -333,9 +392,9 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Price
               TextFormField(
                 controller: _priceController,
@@ -357,9 +416,9 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Payment Method
               DropdownButtonFormField<String>(
                 value: _selectedPaymentMethod,
@@ -367,43 +426,32 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                   labelText: AppLocalizations.of(context)!.choosePaymentMethod,
                   prefixIcon: const Icon(Icons.payment),
                 ),
-                items: [
-                  DropdownMenuItem(
-                    value: 'Cash',
+                items: _paymentOptions.map((option) {
+                  final value = option['value'] as String;
+                  final icon = option['icon'] as IconData;
+                  final label = value == 'card'
+                      ? _cardPaymentLabel(context)
+                      : AppLocalizations.of(context)!.cashPayment;
+                  return DropdownMenuItem(
+                    value: value,
                     child: Row(
                       children: [
-                        Icon(Icons.money, color: Colors.green),
-                        SizedBox(width: 8),
-                        Text(AppLocalizations.of(context)!.cashPayment),
+                        Icon(icon,
+                            color:
+                                value == 'card' ? Colors.blue : Colors.green),
+                        const SizedBox(width: 8),
+                        Text(label),
                       ],
                     ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Bank Transfer',
-                    child: Row(
-                      children: [
-                        Icon(Icons.account_balance, color: Colors.grey),
-                        SizedBox(width: 8),
-                        Text(AppLocalizations.of(context)!.bankTransfer),
-                      ],
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Card on Completion',
-                    child: Row(
-                      children: [
-                        Icon(Icons.credit_card, color: Colors.blue),
-                        SizedBox(width: 8),
-                        Text(AppLocalizations.of(context)!.cardOnCompletion),
-                      ],
-                    ),
-                  ),
-                ],
-                onChanged: widget.order.isEditable ? (value) {
-                  setState(() {
-                    _selectedPaymentMethod = value;
-                  });
-                } : null,
+                  );
+                }).toList(),
+                onChanged: widget.order.isEditable
+                    ? (value) {
+                        setState(() {
+                          _selectedPaymentMethod = value;
+                        });
+                      }
+                    : null,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return AppLocalizations.of(context)!.choosePaymentMethod;
@@ -411,25 +459,37 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                   return null;
                 },
               ),
-              
+
+              if (_selectedPaymentMethod != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _serviceFeeNote(context),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: Colors.grey[600]),
+                ),
+              ],
+
               const SizedBox(height: 16),
-              
+
               // Notes
               TextFormField(
                 controller: _notesController,
                 textDirection: TextDirection.ltr,
                 style: const TextStyle(fontFamily: 'Roboto'),
                 decoration: InputDecoration(
-                  labelText: '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})',
+                  labelText:
+                      '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})',
                   hintText: AppLocalizations.of(context)!.notes,
                   prefixIcon: const Icon(Icons.note),
                 ),
                 maxLines: 3,
                 readOnly: !widget.order.isEditable,
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Photos
               Card(
                 child: Padding(
@@ -451,8 +511,8 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                       Text(
                         AppLocalizations.of(context)!.addPhotosHint,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[400],
-                        ),
+                              color: Colors.grey[400],
+                            ),
                       ),
                       if (widget.order.isEditable) ...[
                         const SizedBox(height: 16),
@@ -481,7 +541,8 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                                         width: 100,
                                         height: 100,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
                                           return Container(
                                             width: 100,
                                             height: 100,
@@ -522,9 +583,9 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Update Button (only if editable)
               if (widget.order.isEditable)
                 ElevatedButton(
@@ -537,7 +598,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                         )
                       : Text(AppLocalizations.of(context)!.updateOrder),
                 ),
-              
+
               const SizedBox(height: 16),
             ],
           ),

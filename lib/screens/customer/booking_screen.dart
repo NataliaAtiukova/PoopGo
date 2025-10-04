@@ -3,8 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
+
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
+import '../../services/local_order_store.dart';
+import '../payment/payment_info_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// BookingScreen: lightweight wrapper around order creation with enforced Pending status.
@@ -47,39 +51,67 @@ class _BookingScreenState extends State<BookingScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('Not authenticated');
-      final orderId = const Uuid().v4();
-      final requested = DateTime(_date.year, _date.month, _date.day, _time.hour, _time.minute);
+      final docId = const Uuid().v4();
+      final orderNumber = 'poopgo_${DateTime.now().millisecondsSinceEpoch}';
+      final requested = DateTime(
+          _date.year, _date.month, _date.day, _time.hour, _time.minute);
 
       List<String> imageUrls = [];
       if (_images.isNotEmpty) {
-        imageUrls = await FirebaseService.uploadMultipleImages(_images, orderId);
+        imageUrls = await FirebaseService.uploadMultipleImages(_images, docId);
       }
 
+      final paymentMethod = 'card'; // legacy screen defaults to card
+      final amount = double.parse(_price.text);
+      final serviceFee = double.parse((amount * 0.10).toStringAsFixed(2));
+      final totalWithFee =
+          double.parse((amount + serviceFee).toStringAsFixed(2));
+
       final order = Order(
-        id: orderId,
+        id: docId,
         customerId: user.uid,
         providerId: null,
         address: _address.text.trim(),
         latitude: 0,
         longitude: 0,
         requestedDate: requested,
-        status: OrderStatus.pending,
+        status: OrderStatus.processing,
         notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
         volume: double.parse(_volume.text),
         imageUrls: imageUrls,
         createdAt: DateTime.now(),
-        price: double.parse(_price.text),
+        price: amount,
+        serviceFee: serviceFee,
+        total: totalWithFee,
         isPaid: false,
-        paymentMethod: null,
+        paymentMethod: paymentMethod,
         serviceFeePaid: false,
+        orderId: orderNumber,
       );
 
-      await FirebaseService.createOrder(order);
+      final createdId = await FirebaseService.createOrder(order);
+      await LocalOrderStore.instance.saveOrder(order.copyWith(id: createdId));
+      await FirebaseFirestore.instance.collection('orders').doc(createdId).update({
+        'amount': amount,
+        'serviceFee': serviceFee,
+        'total': totalWithFee,
+        'paymentMethod': paymentMethod,
+        'isPaid': false,
+        'serviceFeePaid': false,
+        'status': 'processing',
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
       if (!mounted) return;
-      Navigator.pop(context, orderId);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PaymentInfoScreen(orderId: createdId),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context)!.error}: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${AppLocalizations.of(context)!.error}: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -98,29 +130,40 @@ class _BookingScreenState extends State<BookingScreen> {
               controller: _address,
               textDirection: TextDirection.ltr,
               style: const TextStyle(fontFamily: 'Roboto'),
-              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.address),
-              validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.pleaseEnterPickupAddress : null,
+              decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.address),
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? AppLocalizations.of(context)!.pleaseEnterPickupAddress
+                  : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _volume,
-              decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.volume} (L)'),
+              decoration: InputDecoration(
+                  labelText: '${AppLocalizations.of(context)!.volume} (L)'),
               keyboardType: TextInputType.number,
-              validator: (v) => (v == null || double.tryParse(v) == null) ? AppLocalizations.of(context)!.enterTankVolume : null,
+              validator: (v) => (v == null || double.tryParse(v) == null)
+                  ? AppLocalizations.of(context)!.enterTankVolume
+                  : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _price,
-              decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.totalPrice} (₽)'),
+              decoration: InputDecoration(
+                  labelText: '${AppLocalizations.of(context)!.totalPrice} (₽)'),
               keyboardType: TextInputType.number,
-              validator: (v) => (v == null || double.tryParse(v) == null) ? AppLocalizations.of(context)!.enterPriceOffer : null,
+              validator: (v) => (v == null || double.tryParse(v) == null)
+                  ? AppLocalizations.of(context)!.enterPriceOffer
+                  : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _notes,
               textDirection: TextDirection.ltr,
               style: const TextStyle(fontFamily: 'Roboto'),
-              decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})'),
+              decoration: InputDecoration(
+                  labelText:
+                      '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})'),
               minLines: 2,
               maxLines: 4,
             ),
@@ -146,11 +189,13 @@ class _BookingScreenState extends State<BookingScreen> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () async {
-                      final t = await showTimePicker(context: context, initialTime: _time);
+                      final t = await showTimePicker(
+                          context: context, initialTime: _time);
                       if (t != null) setState(() => _time = t);
                     },
                     icon: const Icon(Icons.access_time),
-                    label: Text('${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}'),
+                    label: Text(
+                        '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}'),
                   ),
                 ),
               ],
@@ -159,7 +204,8 @@ class _BookingScreenState extends State<BookingScreen> {
             OutlinedButton.icon(
               onPressed: _pickImages,
               icon: const Icon(Icons.photo_library),
-              label: Text('${AppLocalizations.of(context)!.addPhotos} (${_images.length})'),
+              label: Text(
+                  '${AppLocalizations.of(context)!.addPhotos} (${_images.length})'),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -167,7 +213,10 @@ class _BookingScreenState extends State<BookingScreen> {
               child: ElevatedButton(
                 onPressed: _loading ? null : _submit,
                 child: _loading
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2))
                     : Text(AppLocalizations.of(context)!.createOrder),
               ),
             ),

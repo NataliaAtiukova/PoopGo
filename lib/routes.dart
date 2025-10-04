@@ -17,6 +17,7 @@ import 'screens/shared/user_agreement_screen.dart';
 import 'screens/payment/payment_screen.dart';
 import 'screens/payment/payment_success_screen.dart';
 import 'screens/payment/payment_fail_screen.dart';
+import 'screens/payment/payment_info_screen.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
 import 'models/user_profile.dart';
@@ -39,6 +40,7 @@ class Routes {
   static const publicOffer = '/info/public-offer';
   static const userAgreement = '/info/user-agreement';
   static const payment = '/payment';
+  static const paymentInfo = '/payment-info';
   static const paymentSuccess = '/payment-success';
   static const paymentFail = '/payment-fail';
 
@@ -74,7 +76,16 @@ class Routes {
           final orderId = args is String ? args : '';
           return PaymentScreen(orderId: orderId);
         },
-        paymentSuccess: (ctx) => const PaymentSuccessScreen(),
+        paymentInfo: (ctx) {
+          final args = ModalRoute.of(ctx)?.settings.arguments;
+          final orderId = args is String ? args : '';
+          return PaymentInfoScreen(orderId: orderId);
+        },
+        paymentSuccess: (ctx) {
+          final args = ModalRoute.of(ctx)?.settings.arguments;
+          final orderId = args is String ? args : '';
+          return PaymentSuccessScreen(orderId: orderId);
+        },
         paymentFail: (ctx) => const PaymentFailScreen(),
       };
 }

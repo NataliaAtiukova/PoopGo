@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/local_order_store.dart';
 import '../../models/order.dart';
 import '../../routes.dart';
 import '../../widgets/image_picker_row.dart';
@@ -56,11 +58,17 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
 
   Future<void> _pickDateTime() async {
     final now = DateTime.now();
-    final date = await showDatePicker(context: context, firstDate: now, lastDate: now.add(const Duration(days: 365)), initialDate: now);
+    final date = await showDatePicker(
+        context: context,
+        firstDate: now,
+        lastDate: now.add(const Duration(days: 365)),
+        initialDate: now);
     if (date == null) return;
-    final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    final time =
+        await showTimePicker(context: context, initialTime: TimeOfDay.now());
     if (time == null) return;
-    final dt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final dt =
+        DateTime(date.year, date.month, date.day, time.hour, time.minute);
     setState(() {
       _scheduledAt = dt;
       _date.text = '${date.year}-${date.month}-${date.day}';
@@ -76,10 +84,15 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     final storage = context.read<StorageService>();
     try {
       final id = const Uuid().v4();
+      final orderNumber = 'poopgo_${DateTime.now().millisecondsSinceEpoch}';
       final urls = <String>[];
       for (final f in _images) {
         urls.add(await storage.uploadOrderImage(id, f));
       }
+      final basePrice = 0.0; // TODO: actual pricing logic
+      final serviceFee = double.parse((basePrice * 0.10).toStringAsFixed(2));
+      final total = double.parse((basePrice + serviceFee).toStringAsFixed(2));
+
       final order = Order(
         id: id,
         customerId: auth.currentUser!.uid,
@@ -88,24 +101,43 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
         latitude: _lat ?? 0.0,
         longitude: _lng ?? 0.0,
         requestedDate: _scheduledAt!,
-        status: OrderStatus.pending,
+        status: OrderStatus.processing,
         notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
         volume: double.tryParse(_volume.text) ?? 0.0,
         imageUrls: urls,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        price: 0.0,
+        price: basePrice,
+        serviceFee: serviceFee,
+        total: total,
         isPaid: false,
-        paymentMethod: null,
+        paymentMethod: 'card',
         serviceFeePaid: false,
+        orderId: orderNumber,
       );
       await fs.createOrder(order);
+      await LocalOrderStore.instance.saveOrder(order);
+      await FirebaseFirestore.instance.collection('orders').doc(id).update({
+        'amount': basePrice,
+        'serviceFee': serviceFee,
+        'total': total,
+        'paymentMethod': 'card',
+        'isPaid': false,
+        'serviceFeePaid': false,
+        'status': 'processing',
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
       if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, Routes.orderStatus, arguments: order.id, (route) => route.settings.name == Routes.customerHome);
+      Navigator.pushNamedAndRemoveUntil(
+          context,
+          Routes.orderStatus,
+          arguments: order.id,
+          (route) => route.settings.name == Routes.customerHome);
     } catch (e) {
       if (!mounted) return;
       final l = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${l.error}: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('${l.error}: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -135,7 +167,9 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                 controller: _address,
                 textDirection: TextDirection.ltr,
                 style: const TextStyle(fontFamily: 'Roboto'),
-                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.addressOptionalMap),
+                decoration: InputDecoration(
+                    labelText:
+                        AppLocalizations.of(context)!.addressOptionalMap),
               ),
               const SizedBox(height: 12),
               Row(
@@ -146,9 +180,12 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                       textDirection: TextDirection.ltr,
                       style: const TextStyle(fontFamily: 'Roboto'),
                       readOnly: true,
-                      decoration: InputDecoration(labelText: AppLocalizations.of(context)!.date),
+                      decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context)!.date),
                       onTap: _pickDateTime,
-                      validator: (v) => (_scheduledAt == null) ? AppLocalizations.of(context)!.selectDateTime : null,
+                      validator: (v) => (_scheduledAt == null)
+                          ? AppLocalizations.of(context)!.selectDateTime
+                          : null,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -158,7 +195,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                       textDirection: TextDirection.ltr,
                       style: const TextStyle(fontFamily: 'Roboto'),
                       readOnly: true,
-                      decoration: InputDecoration(labelText: AppLocalizations.of(context)!.time),
+                      decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context)!.time),
                       onTap: _pickDateTime,
                     ),
                   ),
@@ -167,11 +205,13 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _volume,
-                decoration: InputDecoration(labelText: '${AppLocalizations.of(context)!.volume} (L)'),
+                decoration: InputDecoration(
+                    labelText: '${AppLocalizations.of(context)!.volume} (L)'),
                 keyboardType: TextInputType.number,
                 validator: (v) {
                   final n = int.tryParse(v ?? '');
-                  if (n == null || n <= 0) return AppLocalizations.of(context)!.enterPositiveNumber;
+                  if (n == null || n <= 0)
+                    return AppLocalizations.of(context)!.enterPositiveNumber;
                   return null;
                 },
               ),
@@ -180,17 +220,25 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                 children: [
                   Expanded(
                     child: TextFormField(
-                      decoration: InputDecoration(labelText: AppLocalizations.of(context)!.latitudeOptional),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                      onChanged: (v) => setState(() => _lat = double.tryParse(v)),
+                      decoration: InputDecoration(
+                          labelText:
+                              AppLocalizations.of(context)!.latitudeOptional),
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true, signed: true),
+                      onChanged: (v) =>
+                          setState(() => _lat = double.tryParse(v)),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextFormField(
-                      decoration: InputDecoration(labelText: AppLocalizations.of(context)!.longitudeOptional),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                      onChanged: (v) => setState(() => _lng = double.tryParse(v)),
+                      decoration: InputDecoration(
+                          labelText:
+                              AppLocalizations.of(context)!.longitudeOptional),
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true, signed: true),
+                      onChanged: (v) =>
+                          setState(() => _lng = double.tryParse(v)),
                     ),
                   ),
                 ],
@@ -205,7 +253,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                 textDirection: TextDirection.ltr,
                 style: const TextStyle(fontFamily: 'Roboto'),
                 maxLines: 4,
-                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.additionalNotes),
+                decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.additionalNotes),
               ),
               const SizedBox(height: 20),
               SizedBox(
@@ -213,7 +262,9 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.send),
                   onPressed: _loading ? null : _submit,
-                  label: _loading ? const CircularProgressIndicator() : Text(AppLocalizations.of(context)!.submitRequest),
+                  label: _loading
+                      ? const CircularProgressIndicator()
+                      : Text(AppLocalizations.of(context)!.submitRequest),
                 ),
               ),
               const SizedBox(height: 8),
@@ -229,7 +280,8 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                         fontSize: 12,
                       ),
                   children: [
-                    const TextSpan(text: 'Оплачивая сервисный сбор, вы соглашаетесь с '),
+                    const TextSpan(
+                        text: 'Оплачивая сервисный сбор, вы соглашаетесь с '),
                     TextSpan(
                       text: 'Публичной офертой',
                       style: TextStyle(

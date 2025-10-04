@@ -27,7 +27,8 @@ class FirestoreService {
       .map((q) => q.docs.map((d) => Order.fromMap(d.data() as Map<String, dynamic>)).toList());
 
   Stream<List<Order>> streamOpenOrders() => orders
-      .where('status', isEqualTo: OrderStatus.pending.name)
+      .where('status', isEqualTo: OrderStatus.paid.name)
+      .where('isPaid', isEqualTo: true)
       .orderBy('createdAt', descending: true)
       .snapshots()
       .map((q) => q.docs.map((d) => Order.fromMap(d.data() as Map<String, dynamic>)).toList());

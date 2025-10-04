@@ -3,7 +3,6 @@ import '../models/order.dart';
 import '../logic/order_status_handler.dart';
 import '../services/firebase_service.dart';
 import '../widgets/service_fee_modal.dart';
-import '../utils/money.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../screens/shared/chat_screen.dart';
 
@@ -67,15 +66,29 @@ class _ContactUnlockWidgetState extends State<ContactUnlockWidget> {
               children: [
                 Expanded(
                   child: Text(
-                  '${AppLocalizations.of(context)!.totalPrice}: ${_order.price.toStringAsFixed(2)} ₽',
-                  style: Theme.of(context).textTheme.bodySmall,
+                    '${AppLocalizations.of(context)!.amount}: ${_order.price.toStringAsFixed(2)} ₽',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
-              ),
-              Text(
-                  '${AppLocalizations.of(context)!.serviceFee10}: ${calculateServiceFee(_order.price).toStringAsFixed(2)} ₽',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                Text(
+                  '${AppLocalizations.of(context)!.serviceFee10}: ${_order.serviceFee.toStringAsFixed(2)} ₽',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
+            ),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${AppLocalizations.of(context)!.totalPrice}: ${_order.total.toStringAsFixed(2)} ₽',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
             ),
             const SizedBox(height: 12),
             if (OrderStatusHandler.shouldPromptServiceFee(_order))

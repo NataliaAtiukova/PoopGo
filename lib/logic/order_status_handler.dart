@@ -2,19 +2,33 @@ import '../models/order.dart';
 import '../services/firebase_service.dart';
 
 class OrderStatusHandler {
-  /// Allowed linear flow: Pending -> Accepted -> OnTheWay -> Completed
+  /// Allowed transitions between order statuses.
   static bool canTransition(OrderStatus from, OrderStatus to) {
-    const order = [
-      OrderStatus.pending,
-      OrderStatus.accepted,
-      OrderStatus.onTheWay,
-      OrderStatus.completed,
-    ];
-    final iFrom = order.indexOf(from);
-    final iTo = order.indexOf(to);
-    if (iFrom == -1 || iTo == -1) return false;
-    // Only allow moving to the immediate next state or staying in same
-    return iTo == iFrom + 1;
+    if (from == to) return true;
+    const Map<OrderStatus, Set<OrderStatus>> allowed = {
+      OrderStatus.processing: <OrderStatus>{
+        OrderStatus.paid,
+        OrderStatus.pending,
+      },
+      OrderStatus.paid: <OrderStatus>{
+        OrderStatus.accepted,
+        OrderStatus.pending,
+      },
+      OrderStatus.pending: <OrderStatus>{
+        OrderStatus.accepted,
+      },
+      OrderStatus.accepted: <OrderStatus>{
+        OrderStatus.onTheWay,
+      },
+      OrderStatus.onTheWay: <OrderStatus>{
+        OrderStatus.completed,
+      },
+      OrderStatus.completed: <OrderStatus>{},
+      OrderStatus.cancelled: <OrderStatus>{},
+    };
+    final next = allowed[from];
+    if (next == null) return false;
+    return next.contains(to);
   }
 
   /// Provider accepts an order. Sets providerId and moves to Accepted.
@@ -63,7 +77,7 @@ class OrderStatusHandler {
   /// Whether the app should prompt service fee now.
   /// Only at Accepted and above minimum total, and not yet paid.
   static bool shouldPromptServiceFee(Order order) {
-    return order.status == OrderStatus.accepted && order.serviceFeePaid == false;
+    return order.status == OrderStatus.processing && order.serviceFeePaid == false;
   }
 
   /// Whether customer can access provider contact/chat.
