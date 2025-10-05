@@ -168,7 +168,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                     child: Column(
                       children: [
                         _buildDetailRow(
-                            'ID заказа', _order!.orderId, Icons.tag),
+                            'ID заказа',
+                            _order!.orderId ?? _order!.id,
+                            Icons.tag),
                         const Divider(),
                         _buildDetailRow(AppLocalizations.of(context)!.address,
                             _order!.address, Icons.location_on),

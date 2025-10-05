@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
 
+import 'package:image_picker/image_picker.dart';
 import '../../models/order.dart';
 import '../../services/firebase_service.dart';
 import '../../services/local_order_store.dart';
 import '../payment/payment_info_screen.dart';
+import '../../utils/order_id_generator.dart';
 import '../../utils/order_status_display.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -108,8 +108,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       if (user == null) throw Exception('User not authenticated');
 
       // Create order
-      final docId = const Uuid().v4();
-      final orderNumber = 'poopgo_${DateTime.now().millisecondsSinceEpoch}';
+      final orderNumber = await generateDailyOrderId();
       final requestedDateTime = DateTime(
         _selectedDate.year,
         _selectedDate.month,
@@ -122,7 +121,8 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       List<String> imageUrls = [];
       if (_selectedImages.isNotEmpty) {
         imageUrls =
-            await FirebaseService.uploadMultipleImages(_selectedImages, docId);
+            await FirebaseService.uploadMultipleImages(
+                _selectedImages, orderNumber);
       }
 
       final paymentMethod = _selectedPaymentMethod ?? 'cash';
@@ -132,7 +132,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
           double.parse((amount + serviceFee).toStringAsFixed(2));
 
       final order = Order(
-        id: docId,
+        id: orderNumber,
         customerId: user.uid,
         address: _addressController.text.trim(),
         latitude: 0.0, // TODO: Get from location service
@@ -160,7 +160,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       await FirebaseFirestore.instance
           .collection('orders')
           .doc(createdId)
-          .update({
+          .set({
         'userId': user.uid,
         'amount': amount,
         'serviceFee': serviceFee,
@@ -171,9 +171,11 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         'status': OrderStatus.processing.firestoreValue,
         'displayStatus':
             displayStatusFromRaw(OrderStatus.processing.firestoreValue),
+        'orderId': orderNumber,
         'updatedAt': FieldValue.serverTimestamp(),
-      });
-      await LocalOrderStore.instance.saveOrder(order.copyWith(id: createdId));
+      }, SetOptions(merge: true));
+      await LocalOrderStore.instance
+          .saveOrder(order.copyWith(id: createdId));
 
       if (!mounted) return;
 

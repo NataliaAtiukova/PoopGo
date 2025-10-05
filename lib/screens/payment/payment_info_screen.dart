@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'payment_screen.dart';
@@ -40,10 +41,7 @@ class PaymentInfoScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _InfoRow(
-                  label: _localized(context, ru: 'Номер заказа', en: 'Order ID'),
-                  value: orderId,
-                ),
+                _OrderIdRow(orderId: orderId),
                 const SizedBox(height: 12),
                 _InfoRow(
                   label: _localized(context,
@@ -104,6 +102,48 @@ class _InfoRow extends StatelessWidget {
         Text(
           value,
           style: Theme.of(context).textTheme.titleMedium,
+        ),
+      ],
+    );
+  }
+}
+
+class _OrderIdRow extends StatelessWidget {
+  final String orderId;
+  const _OrderIdRow({required this.orderId});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = _localized(context, ru: 'Номер заказа:', en: 'Order ID:');
+    final copied = _localized(context,
+        ru: 'Номер заказа скопирован', en: 'Order number copied');
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Flexible(
+          child: Text(
+            '$label $orderId',
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge
+                ?.copyWith(fontWeight: FontWeight.w600),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          icon: const Icon(Icons.copy, size: 18, color: Colors.blueAccent),
+          tooltip: _localized(context, ru: 'Скопировать', en: 'Copy'),
+          onPressed: () async {
+            await Clipboard.setData(ClipboardData(text: orderId));
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(copied),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          },
         ),
       ],
     );

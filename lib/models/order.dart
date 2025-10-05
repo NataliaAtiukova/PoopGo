@@ -65,7 +65,7 @@ class Order {
   final bool isPaid;
   final String? paymentMethod; // payment method selected by customer
   final bool serviceFeePaid; // service commission paid by customer
-  final String orderId; // external payment reference
+  final String? orderId; // external payment reference
   final String? displayStatus;
 
   Order({
@@ -91,7 +91,7 @@ class Order {
     this.isPaid = false,
     this.paymentMethod,
     this.serviceFeePaid = false,
-    required this.orderId,
+    this.orderId,
     this.displayStatus,
   });
 

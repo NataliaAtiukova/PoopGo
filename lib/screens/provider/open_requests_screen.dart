@@ -38,14 +38,19 @@ class OpenRequestsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     OrderListTile(order: order),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 8),
                     ServiceFeeNotice(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       onTap: () => Navigator.pushNamed(context, Routes.servicesPayment),
                     ),
-                    OverflowBar(
-                      children: [
-                        TextButton(
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.check_circle_outline),
+                          label: Text(AppLocalizations.of(context)!.accept),
                           onPressed: () async {
                             final agreed = await showProviderAgreementDialog(
                               context,
@@ -53,26 +58,31 @@ class OpenRequestsScreen extends StatelessWidget {
                             );
                             if (!agreed) return;
                             try {
-                              await firestore.acceptOrder(orderId: order.id, providerId: auth.currentUser!.uid);
+                              await firestore.acceptOrder(
+                                orderId: order.id,
+                                providerId: auth.currentUser!.uid,
+                              );
                               if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(AppLocalizations.of(context)!.orderAcceptedSuccess), backgroundColor: Colors.green),
+                                SnackBar(
+                                  content: Text(AppLocalizations.of(context)!.orderAcceptedSuccess),
+                                  backgroundColor: Colors.green,
+                                ),
                               );
                             } catch (e) {
                               if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('${AppLocalizations.of(context)!.error}: $e'), backgroundColor: Colors.red),
+                                SnackBar(
+                                  content: Text('${AppLocalizations.of(context)!.error}: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
                               );
                             }
                           },
-                          child: Text(AppLocalizations.of(context)!.accept),
                         ),
-                        TextButton(
-                          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.orderRejected))),
-                          child: Text(AppLocalizations.of(context)!.reject),
-                        ),
-                      ],
-                    )
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                   ],
                 ),
               );

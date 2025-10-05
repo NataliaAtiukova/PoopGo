@@ -23,17 +23,20 @@ class ServiceFeeNotice extends StatelessWidget {
     );
 
     final l = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
+    final learnMoreText = locale == 'ru' ? 'Подробнее…' : 'Learn more…';
 
-    final content = Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${l.paymentMethodNote} ',
+          l.paymentMethodNote,
           style: infoStyle,
         ),
+        const SizedBox(height: 4),
         GestureDetector(
           onTap: onTap,
-          child: Text('Подробнее…', style: linkStyle),
+          child: Text(learnMoreText, style: linkStyle),
         ),
       ],
     );

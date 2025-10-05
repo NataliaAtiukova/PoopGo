@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/order.dart' as app_models;
 import '../models/user_profile.dart';
 import '../utils/order_status_display.dart';
+import '../utils/order_id_generator.dart';
 
 class FirebaseService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -43,9 +44,14 @@ class FirebaseService {
 
   // Order Management
   static Future<String> createOrder(app_models.Order order) async {
-    final docRef = await _firestore.collection('orders').add(order.toMap());
-    await docRef.update({'id': docRef.id});
-    return docRef.id;
+    final orderId = order.orderId ?? await generateDailyOrderId();
+    await _firestore.collection('orders').doc(orderId).set({
+      ...order.toMap(),
+      'id': orderId,
+      'orderId': orderId,
+      'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+    return orderId;
   }
 
   static Future<void> updateOrderStatus(String orderId, app_models.OrderStatus status, {String? providerId}) async {

@@ -65,6 +65,12 @@ class _CompletedOrderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final completedDate = order.completedAt ?? order.updatedAt ?? order.createdAt;
+    final serviceFeePaidText = order.serviceFeePaid
+        ? l.driverHistoryServiceFeePaid
+        : l.driverHistoryServiceFeeUnpaid;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -76,13 +82,78 @@ class _CompletedOrderTile extends StatelessWidget {
                 const Icon(Icons.done_all, color: Colors.green),
                 const SizedBox(width: 8),
                 Expanded(child: Text(order.address, style: Theme.of(context).textTheme.titleMedium)),
-                PriceDisplay(price: order.total, showLabel: false),
+                PriceDisplay(price: order.price, showLabel: false),
               ],
             ),
             const SizedBox(height: 6),
-            Text(AppLocalizations.of(context)!.completedOn(_formatDate(order.updatedAt ?? order.createdAt)), style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              AppLocalizations.of(context)!
+                  .completedOn(_formatDate(completedDate)),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(height: 6),
-            Text('${AppLocalizations.of(context)!.volume}: ${order.volume}L', style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              l.driverHistoryVolumePrice(
+                order.volume.toStringAsFixed(0),
+                order.price.toStringAsFixed(2),
+              ),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l.driverHistoryPayout(order.price.toStringAsFixed(2)),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l.driverHistoryServiceFee(order.serviceFee.toStringAsFixed(2)),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              serviceFeePaidText,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: order.serviceFeePaid ? Colors.green : Colors.orange,
+                  ),
+            ),
+            if (order.displayStatus != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                order.displayStatus!,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Colors.grey[600]),
+              ),
+            ],
+            const SizedBox(height: 12),
+            FutureBuilder<Map<String, dynamic>?>(
+              future: FirebaseService.getUserContact(order.customerId),
+              builder: (context, snapshot) {
+                final contact = snapshot.data;
+                final name = contact?['fullName'] ?? contact?['name'] ?? '-';
+                final phone = contact?['phone'] ?? '-';
+                final email = contact?['email'] ?? '-';
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l.driverHistoryCustomerContact,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(name, style: Theme.of(context).textTheme.bodyMedium),
+                    Text(l.driverHistoryContactPhone(phone),
+                        style: Theme.of(context).textTheme.bodySmall),
+                    Text(l.driverHistoryContactEmail(email),
+                        style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                );
+              },
+            ),
           ],
         ),
       ),

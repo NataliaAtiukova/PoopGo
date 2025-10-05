@@ -4,12 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
 import '../../services/auth_service.dart';
-import '../../services/firestore_service.dart';
 import '../../services/storage_service.dart';
 import '../../services/local_order_store.dart';
 import '../../models/order.dart';
+import '../../services/firebase_service.dart';
+import '../../utils/order_id_generator.dart';
 import '../../routes.dart';
 import '../../widgets/image_picker_row.dart';
 import '../../widgets/map_preview.dart';
@@ -84,21 +84,19 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
     if (!_formKey.currentState!.validate() || _scheduledAt == null) return;
     setState(() => _loading = true);
     final auth = context.read<AuthService>();
-    final fs = context.read<FirestoreService>();
     final storage = context.read<StorageService>();
     try {
-      final id = const Uuid().v4();
-      final orderNumber = 'poopgo_${DateTime.now().millisecondsSinceEpoch}';
+      final orderNumber = await generateDailyOrderId();
       final urls = <String>[];
-      for (final f in _images) {
-        urls.add(await storage.uploadOrderImage(id, f));
+      for (final file in _images) {
+        urls.add(await storage.uploadOrderImage(orderNumber, file));
       }
       const basePrice = 0.0; // TODO: actual pricing logic
       final serviceFee = double.parse((basePrice * 0.10).toStringAsFixed(2));
       final total = double.parse((basePrice + serviceFee).toStringAsFixed(2));
 
       final order = Order(
-        id: id,
+        id: orderNumber,
         customerId: auth.currentUser!.uid,
         providerId: null,
         address: _address.text.trim(),
@@ -121,9 +119,9 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
         displayStatus:
             displayStatusFromRaw(OrderStatus.processing.firestoreValue),
       );
-      await fs.createOrder(order);
-      await LocalOrderStore.instance.saveOrder(order);
-      await FirebaseFirestore.instance.collection('orders').doc(id).update({
+      final createdId = await FirebaseService.createOrder(order);
+      await LocalOrderStore.instance.saveOrder(order.copyWith(id: createdId));
+      await FirebaseFirestore.instance.collection('orders').doc(createdId).set({
         'amount': basePrice,
         'serviceFee': serviceFee,
         'total': total,
@@ -133,13 +131,14 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
         'status': OrderStatus.processing.firestoreValue,
         'displayStatus':
             displayStatusFromRaw(OrderStatus.processing.firestoreValue),
+        'orderId': orderNumber,
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(
           context,
           Routes.orderStatus,
-          arguments: order.id,
+          arguments: createdId,
           (route) => route.settings.name == Routes.customerHome);
     } catch (e) {
       if (!mounted) return;

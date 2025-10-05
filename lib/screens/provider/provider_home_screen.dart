@@ -9,6 +9,7 @@ import '../../widgets/payment_method_display.dart';
 import '../../widgets/price_display.dart';
 import '../../widgets/provider_acceptance_dialog.dart';
 import '../../widgets/service_fee_notice.dart';
+import '../../utils/order_status_display.dart';
 import '../shared/chat_screen.dart';
 import '../shared/profile_settings_screen.dart';
 import 'provider_job_history_screen.dart';
@@ -471,26 +472,36 @@ class _MyJobsTab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  if (order.status == OrderStatus.assigned)
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () =>
-                            _updateStatus(context, order, OrderStatus.inProgress),
-                        icon: const Icon(Icons.local_shipping),
-                        label: Text(AppLocalizations.of(context)!.start),
-                      ),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: order.status == OrderStatus.assigned
+                          ? () => _updateStatus(
+                              context, order, OrderStatus.inProgress)
+                          : order.status == OrderStatus.inProgress
+                              ? () => _updateStatus(
+                                  context, order, OrderStatus.completed)
+                              : null,
+                      icon: Icon(order.status == OrderStatus.inProgress
+                          ? Icons.check_circle
+                          : Icons.play_arrow),
+                      label: Text(order.status == OrderStatus.inProgress
+                          ? AppLocalizations.of(context)!.complete
+                          : AppLocalizations.of(context)!.start),
                     ),
-                  if (order.status == OrderStatus.inProgress)
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _updateStatus(
-                            context, order, OrderStatus.completed),
-                        icon: const Icon(Icons.check),
-                        label: Text(AppLocalizations.of(context)!.complete),
-                      ),
-                    ),
+                  ),
                 ],
               ),
+              if (order.status == OrderStatus.assigned) ...[
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () => _cancelOrder(context, order),
+                    icon: const Icon(Icons.undo),
+                    label: Text(AppLocalizations.of(context)!.cancel),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -796,6 +807,34 @@ class _MyJobsTab extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year} at ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _cancelOrder(BuildContext context, Order order) async {
+    try {
+      await FirebaseFirestore.instance.collection('orders').doc(order.id).update({
+        'status': OrderStatus.paid.firestoreValue,
+        'displayStatus':
+            displayStatusFromRaw(OrderStatus.paid.firestoreValue),
+        'providerId': null,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.driverOrderReturned),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      final l = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${l.error}: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
 
