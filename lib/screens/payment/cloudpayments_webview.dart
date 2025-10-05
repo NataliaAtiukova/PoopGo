@@ -54,7 +54,7 @@ class _CloudPaymentsWebViewState extends State<CloudPaymentsWebView> {
 
   void _loadDynamicHtml() {
     final l = AppLocalizations.of(context)!;
-    final publicId = PaymentConfig.cloudPaymentsPublicId;
+    const publicId = PaymentConfig.cloudPaymentsPublicId;
     final amount = widget.amount.toStringAsFixed(2);
     final description = widget.description ?? l.serviceCommissionForOrder(widget.orderId);
     final invoiceId = widget.orderId;

@@ -61,7 +61,7 @@ class _BookingScreenState extends State<BookingScreen> {
         imageUrls = await FirebaseService.uploadMultipleImages(_images, docId);
       }
 
-      final paymentMethod = 'card'; // legacy screen defaults to card
+      const paymentMethod = 'card'; // legacy screen defaults to card
       final amount = double.parse(_price.text);
       final serviceFee = double.parse((amount * 0.10).toStringAsFixed(2));
       final totalWithFee =

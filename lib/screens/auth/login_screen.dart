@@ -61,6 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final role = await FirebaseService.getUserRole(credential.user!.uid);
       if (role == null) {
         await FirebaseAuth.instance.signOut();
+        if (!mounted) return;
         _showErrorDialog(AppLocalizations.of(context)!.userRoleNotFound);
       }
     }

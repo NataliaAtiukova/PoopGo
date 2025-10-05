@@ -63,12 +63,15 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
         firstDate: now,
         lastDate: now.add(const Duration(days: 365)),
         initialDate: now);
+    if (!mounted) return;
     if (date == null) return;
     final time =
         await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    if (!mounted) return;
     if (time == null) return;
     final dt =
         DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    if (!mounted) return;
     setState(() {
       _scheduledAt = dt;
       _date.text = '${date.year}-${date.month}-${date.day}';
@@ -89,7 +92,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
       for (final f in _images) {
         urls.add(await storage.uploadOrderImage(id, f));
       }
-      final basePrice = 0.0; // TODO: actual pricing logic
+      const basePrice = 0.0; // TODO: actual pricing logic
       final serviceFee = double.parse((basePrice * 0.10).toStringAsFixed(2));
       final total = double.parse((basePrice + serviceFee).toStringAsFixed(2));
 
@@ -210,8 +213,9 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                 keyboardType: TextInputType.number,
                 validator: (v) {
                   final n = int.tryParse(v ?? '');
-                  if (n == null || n <= 0)
+                  if (n == null || n <= 0) {
                     return AppLocalizations.of(context)!.enterPositiveNumber;
+                  }
                   return null;
                 },
               ),

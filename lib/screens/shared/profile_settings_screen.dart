@@ -58,7 +58,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       } else {
         final snap = await db.collection('users').doc(uid).get();
         final data = snap.data() ?? {};
-        _fullNameController.text = (data['fullName'] ?? data['name'] ?? '').toString();
+        _fullNameController.text =
+            (data['fullName'] ?? data['name'] ?? '').toString();
         _phoneController.text = (data['phone'] ?? '').toString();
         _emailController.text = (data['email'] ?? user.email ?? '').toString();
         _avatarUrl = (data['avatarUrl'])?.toString();
@@ -69,7 +70,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   }
 
   Future<void> _pickAvatar() async {
-    final x = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1440);
+    final x = await ImagePicker()
+        .pickImage(source: ImageSource.gallery, maxWidth: 1440);
     if (x != null) {
       setState(() => _avatarFile = File(x.path));
     }
@@ -86,7 +88,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       String? url = _avatarUrl;
       if (_avatarFile != null) {
         final storage = StorageService();
-        url = await storage.uploadProfileImage(user.uid, _avatarFile!, folder: widget.role == 'provider' ? 'providers' : 'profiles');
+        url = await storage.uploadProfileImage(user.uid, _avatarFile!,
+            folder: widget.role == 'provider' ? 'providers' : 'profiles');
       }
 
       final db = FirebaseFirestore.instance;
@@ -114,11 +117,15 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.profileSaved), backgroundColor: Colors.green));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context)!.profileSaved),
+          backgroundColor: Colors.green));
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context)!.failedToSave}: $e'), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${AppLocalizations.of(context)!.failedToSave}: $e'),
+          backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -128,7 +135,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   Widget build(BuildContext context) {
     final isProvider = widget.role == 'provider';
     return Scaffold(
-      appBar: AppBar(title: Text(isProvider ? AppLocalizations.of(context)!.providerSettings : AppLocalizations.of(context)!.profileSettings)),
+      appBar: AppBar(
+          title: Text(isProvider
+              ? AppLocalizations.of(context)!.providerSettings
+              : AppLocalizations.of(context)!.profileSettings)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
@@ -146,10 +156,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                               radius: 44,
                               backgroundImage: _avatarFile != null
                                   ? FileImage(_avatarFile!)
-                                  : (_avatarUrl != null && _avatarUrl!.isNotEmpty)
-                                      ? NetworkImage(_avatarUrl!) as ImageProvider
+                                  : (_avatarUrl != null &&
+                                          _avatarUrl!.isNotEmpty)
+                                      ? NetworkImage(_avatarUrl!)
+                                          as ImageProvider
                                       : null,
-                              child: (_avatarFile == null && (_avatarUrl == null || _avatarUrl!.isEmpty))
+                              child: (_avatarFile == null &&
+                                      (_avatarUrl == null ||
+                                          _avatarUrl!.isEmpty))
                                   ? const Icon(Icons.person, size: 40)
                                   : null,
                             ),
@@ -164,7 +178,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                   onTap: _pickAvatar,
                                   child: const Padding(
                                     padding: EdgeInsets.all(8.0),
-                                    child: Icon(Icons.edit, color: Colors.white, size: 18),
+                                    child: Icon(Icons.edit,
+                                        color: Colors.white, size: 18),
                                   ),
                                 ),
                               ),
@@ -181,7 +196,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           labelText: AppLocalizations.of(context)!.fullName,
                           prefixIcon: const Icon(Icons.person_outline),
                         ),
-                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Enter your name'
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -193,7 +210,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           labelText: AppLocalizations.of(context)!.phoneNumber,
                           prefixIcon: const Icon(Icons.phone_outlined),
                         ),
-                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your phone' : null,
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Enter your phone'
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -206,8 +225,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           prefixIcon: const Icon(Icons.email_outlined),
                         ),
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Enter your email';
-                          if (!v.contains('@')) return 'Enter a valid email';
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Enter your email';
+                          }
+                          if (!v.contains('@')) {
+                            return 'Enter a valid email';
+                          }
                           return null;
                         },
                       ),

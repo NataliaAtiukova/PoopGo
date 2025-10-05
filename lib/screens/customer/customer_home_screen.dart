@@ -621,8 +621,9 @@ class _ProfileTab extends StatelessWidget {
                       final fullName =
                           (data['fullName'] ?? data['name'] ?? '').toString();
                       final phone = (data['phone'] ?? '').toString();
-                      if (fullName.isEmpty && phone.isEmpty)
+                      if (fullName.isEmpty && phone.isEmpty) {
                         return const SizedBox.shrink();
+                      }
                       return Column(
                         children: [
                           if (fullName.isNotEmpty)

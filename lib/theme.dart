@@ -17,11 +17,9 @@ class AppTheme {
         primary: primaryBlue,
         secondary: primaryBlue,
         surface: surfaceColor,
-        background: darkBackground,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: Colors.white,
-        onBackground: Colors.white,
       ),
 
       scaffoldBackgroundColor: darkBackground,
@@ -181,11 +179,9 @@ class AppTheme {
         primary: primaryBlue,
         secondary: primaryBlue,
         surface: lightSurface,
-        background: lightBackground,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: Colors.black,
-        onBackground: Colors.black,
       ),
       scaffoldBackgroundColor: lightBackground,
       appBarTheme: AppBarTheme(

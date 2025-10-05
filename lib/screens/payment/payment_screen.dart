@@ -2,9 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import 'payment_fail_screen.dart';
-import 'payment_success_screen.dart';
-
 /// Экран оплаты через WebView. Загружает платёжную страницу и отслеживает
 /// редиректы для определения успешной либо неуспешной оплаты.
 class PaymentScreen extends StatefulWidget {
@@ -19,8 +16,7 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   late final WebViewController _controller;
   bool _isLoading = true;
-  bool _isNavigatingAway = false;
-  bool _isPaymentChecked = false;
+  bool _paymentFinished = false;
 
   @override
   void initState() {
@@ -43,29 +39,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
       NavigationRequest request) async {
     final url = request.url;
     if (url.contains('payment-success.html')) {
-      if (_isNavigatingAway) return NavigationDecision.prevent;
-      _isNavigatingAway = true;
-      _isPaymentChecked = true;
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PaymentSuccessScreen(orderId: widget.orderId),
-          ),
-        );
-      }
-      return NavigationDecision.prevent;
-    }
-    if (url.contains('payment-fail.html')) {
-      if (_isNavigatingAway) return NavigationDecision.prevent;
-      _isNavigatingAway = true;
+      if (_paymentFinished) return NavigationDecision.prevent;
+      setState(() => _paymentFinished = true);
       try {
         await FirebaseFirestore.instance
             .collection('orders')
             .doc(widget.orderId)
             .update({
-          'status': 'failed',
-          'updatedAt': FieldValue.serverTimestamp(),
+          'status': 'paid',
+          'isPaid': true,
+          'serviceFeePaid': true,
+          'paidAt': FieldValue.serverTimestamp(),
         });
       } catch (e) {
         if (mounted) {
@@ -74,48 +58,41 @@ class _PaymentScreenState extends State<PaymentScreen> {
           );
         }
       }
-      _isPaymentChecked = true;
       if (mounted) {
-        Navigator.pushReplacement(
+        Navigator.pushReplacementNamed(
           context,
-          MaterialPageRoute(
-            builder: (_) => const PaymentFailScreen(),
-          ),
+          '/payment-success',
+          arguments: widget.orderId,
+        );
+      }
+      return NavigationDecision.prevent;
+    }
+    if (url.contains('payment-fail.html')) {
+      if (_paymentFinished) return NavigationDecision.prevent;
+      setState(() => _paymentFinished = true);
+      try {
+        await FirebaseFirestore.instance
+            .collection('orders')
+            .doc(widget.orderId)
+            .update({
+          'status': 'failed',
+        });
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Не удалось обновить статус оплаты: $e')),
+          );
+        }
+      }
+      if (mounted) {
+        Navigator.pushReplacementNamed(
+          context,
+          '/payment-fail',
         );
       }
       return NavigationDecision.prevent;
     }
     return NavigationDecision.navigate;
-  }
-
-  Future<bool> _handleExitNavigation() async {
-    if (_isNavigatingAway || _isPaymentChecked) return false;
-    _isNavigatingAway = true;
-
-    try {
-      final orderSnapshot = await FirebaseFirestore.instance
-          .collection('orders')
-          .doc(widget.orderId)
-          .get();
-      if (!mounted) return false;
-      final data = orderSnapshot.data();
-      if (orderSnapshot.exists && data?['status'] == 'paid') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PaymentSuccessScreen(orderId: widget.orderId),
-          ),
-        );
-      } else {
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    }
-
-    return false;
   }
 
   Future<void> _markProcessing() async {
@@ -140,23 +117,35 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _handleExitNavigation,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Оплата сервисного сбора'),
-          leading: BackButton(
-            onPressed: () {
-              _handleExitNavigation();
-            },
+    return PopScope(
+      canPop: _paymentFinished,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (!mounted || _paymentFinished) return;
+        await showDialog<void>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Оплата не завершена'),
+            content: const Text('Пожалуйста, завершите платёж перед выходом.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Остаться'),
+              ),
+            ],
           ),
-        ),
+        );
+      },
+      child: Scaffold(
         body: Stack(
           children: [
-            WebViewWidget(controller: _controller),
+            Positioned.fill(
+              child: WebViewWidget(controller: _controller),
+            ),
             if (_isLoading)
-              const Center(
-                child: CircularProgressIndicator(),
+              const ColoredBox(
+                color: Colors.black26,
+                child: Center(child: CircularProgressIndicator()),
               ),
           ],
         ),

@@ -103,8 +103,11 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           // Prompt commission once when accepted & unpaid
           if (_shouldPromptCommission() && !_promptedCommission) {
             _promptedCommission = true;
+            final currentContext = context;
             Future.microtask(() async {
-              await showServiceFeeModal(context, _order!);
+              if (!mounted || !currentContext.mounted) return;
+              await showServiceFeeModal(currentContext, _order!);
+              if (!mounted || !currentContext.mounted) return;
               final refreshed =
                   await FirebaseService.getOrderById(widget.orderId);
               if (mounted) setState(() => _order = refreshed);

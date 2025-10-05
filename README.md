@@ -17,8 +17,15 @@ Project Setup
      - `android/app/google-services.json.example` → `android/app/google-services.json`
      - `ios/Runner/GoogleService-Info.plist.example` → `ios/Runner/GoogleService-Info.plist`
      - `macos/Runner/GoogleService-Info.plist.example` → `macos/Runner/GoogleService-Info.plist`
-   - Create `firebase_options.env` from `firebase_options.env.example` and keep it out of Git.
-   - Run the app with your secrets via `--dart-define-from-file=firebase_options.env` (or pass each `--dart-define` manually).
+   - Create `.env` in the project root with the Firebase keys:
+     ```env
+     FIREBASE_API_KEY=...
+     FIREBASE_APP_ID=...
+     FIREBASE_PROJECT_ID=...
+     FIREBASE_MESSAGING_SENDER_ID=...
+     FIREBASE_STORAGE_BUCKET=...
+     ```
+   - Keep `.env` and all platform `GoogleService-Info.plist`/`google-services.json` files out of Git; they are listed in `.gitignore`.
 
 3) Ensure Firebase services are enabled for your project (Auth, Firestore, Storage, Cloud Messaging).
 
@@ -29,7 +36,7 @@ Project Setup
    - flutter pub get
 
 6) Run:
-   - flutter run --dart-define-from-file=firebase_options.env
+   - flutter run
 
 Firestore Data Model (suggested)
 
@@ -42,7 +49,6 @@ Firestore Data Model (suggested)
 
 Notes
 
-- `lib/firebase_options.dart` expects configuration from compile-time defines; secrets no longer live in the repository.
+- Firebase options are loaded dynamically from the `.env` file at runtime.
 - Push notifications are wired to store the FCM token; showing foreground notifications can be added with flutter_local_notifications.
 - Map picker is left as a follow-up; address text is supported now.
-

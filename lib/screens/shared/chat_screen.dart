@@ -150,7 +150,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: Theme.of(context).colorScheme.background,
+                      fillColor: Theme.of(context).colorScheme.surface,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
@@ -196,9 +196,9 @@ class _ChatScreenState extends State<ChatScreen> {
           CircleAvatar(
             radius: 16,
             backgroundColor: Theme.of(context).colorScheme.primary,
-            child: Text(
+            child: const Text(
               'P',
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -253,9 +253,9 @@ class _ChatScreenState extends State<ChatScreen> {
           CircleAvatar(
             radius: 16,
             backgroundColor: Theme.of(context).colorScheme.primary,
-            child: Text(
+            child: const Text(
               'M',
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,

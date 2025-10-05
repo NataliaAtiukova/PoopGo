@@ -30,9 +30,13 @@ dependencies:
   cached_network_image: ^3.3.1
   permission_handler: ^11.3.1
   webview_flutter: ^4.4.2
+  flutter_dotenv: ^5.1.0
+  http: ^1.2.2
   syncfusion_flutter_pdf: ^31.1.19
   open_filex: ^4.7.0
   path_provider: ^2.1.5
+  sqflite: ^2.3.3
+  path: ^1.9.0
 
 dev_dependencies:
   flutter_test:
@@ -50,6 +54,7 @@ flutter:
     - assets/documents/oferta_pooppgo.pdf
     - assets/documents/oferta_pooppgo_updated.docx
     - assets/documents/user_agreement_pooppgo.pdf
+    - .env
 
 flutter_icons:
   android: true

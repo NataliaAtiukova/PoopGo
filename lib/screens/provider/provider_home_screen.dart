@@ -227,29 +227,30 @@ class _AvailableJobsTab extends StatelessWidget {
       );
 
       // Send notification to customer
+      if (!context.mounted) return;
+      final l = AppLocalizations.of(context)!;
       await FirebaseService.sendNotificationToUser(
         order.customerId,
-        AppLocalizations.of(context)!.notifOrderAcceptedTitle,
-        AppLocalizations.of(context)!.notifOrderAcceptedBody,
+        l.notifOrderAcceptedTitle,
+        l.notifOrderAcceptedBody,
       );
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.orderAcceptedSuccess),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l.orderAcceptedSuccess),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${AppLocalizations.of(context)!.error}: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!context.mounted) return;
+      final l = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${l.error}: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -499,26 +500,35 @@ class _MyJobsTab extends StatelessWidget {
       // Refresh current order to ensure up-to-date status/payment
       final current = await FirebaseService.getOrderById(order.id) ?? order;
 
+      if (!context.mounted) return;
+      final l = AppLocalizations.of(context)!;
+
       // Enforce linear flow and commission requirement
       if (newStatus == OrderStatus.onTheWay) {
         if (current.status != OrderStatus.accepted) {
-          await _showAlert(context, AppLocalizations.of(context)!.invalidStatus,
-              AppLocalizations.of(context)!.mustAcceptBeforeStart);
+          await _showAlert(
+            context,
+            l.invalidStatus,
+            l.mustAcceptBeforeStart,
+          );
           return;
         }
         if (current.serviceFeePaid == false) {
           await _showAlert(
             context,
-            AppLocalizations.of(context)!.paymentRequired,
-            AppLocalizations.of(context)!.waitForCommission,
+            l.paymentRequired,
+            l.waitForCommission,
           );
           return;
         }
       }
       if (newStatus == OrderStatus.completed) {
         if (current.status != OrderStatus.onTheWay) {
-          await _showAlert(context, AppLocalizations.of(context)!.invalidStatus,
-              AppLocalizations.of(context)!.completeFlowHint);
+          await _showAlert(
+            context,
+            l.invalidStatus,
+            l.completeFlowHint,
+          );
           return;
         }
       }
@@ -526,45 +536,45 @@ class _MyJobsTab extends StatelessWidget {
       await FirebaseService.updateOrderStatus(current.id, newStatus);
 
       // Send notification to customer
-      String title = '';
-      String body = '';
+      if (!context.mounted) return;
+      String? title;
+      String? body;
 
       switch (newStatus) {
         case OrderStatus.onTheWay:
-          title = AppLocalizations.of(context)!.notifOnTheWayTitle;
-          body = AppLocalizations.of(context)!.notifOnTheWayBody;
+          title = l.notifOnTheWayTitle;
+          body = l.notifOnTheWayBody;
           break;
         case OrderStatus.completed:
-          title = AppLocalizations.of(context)!.notifCompletedTitle;
-          body = AppLocalizations.of(context)!.notifCompletedBody;
+          title = l.notifCompletedTitle;
+          body = l.notifCompletedBody;
           break;
         default:
           break;
       }
 
-      if (title.isNotEmpty) {
+      if (title != null && body != null) {
         await FirebaseService.sendNotificationToUser(
             order.customerId, title, body);
       }
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!
-                .statusUpdatedTo(orderStatusText(context, newStatus))),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      if (!context.mounted) return;
+      final statusText = orderStatusText(context, newStatus);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l.statusUpdatedTo(statusText)),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${AppLocalizations.of(context)!.error}: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!context.mounted) return;
+      final l = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${l.error}: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -839,8 +849,9 @@ class _ProfileTab extends StatelessWidget {
                       final data = snap.data?.data() ?? {};
                       final fullName = (data['fullName'] ?? '').toString();
                       final phone = (data['phone'] ?? '').toString();
-                      if (fullName.isEmpty && phone.isEmpty)
+                      if (fullName.isEmpty && phone.isEmpty) {
                         return const SizedBox.shrink();
+                      }
                       return Column(
                         children: [
                           if (fullName.isNotEmpty)

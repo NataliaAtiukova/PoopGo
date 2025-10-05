@@ -241,7 +241,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.address,
                   hintText: AppLocalizations.of(context)!.address,
-                  prefixIcon: Icon(Icons.location_on),
+                  prefixIcon: const Icon(Icons.location_on),
                 ),
                 maxLines: 2,
                 validator: (value) {
@@ -332,7 +332,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 decoration: InputDecoration(
                   labelText: '${AppLocalizations.of(context)!.volume} (L)',
                   hintText: '${AppLocalizations.of(context)!.volume} (L)',
-                  prefixIcon: Icon(Icons.water_drop),
+                  prefixIcon: const Icon(Icons.water_drop),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -355,7 +355,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 decoration: InputDecoration(
                   labelText: '${AppLocalizations.of(context)!.totalPrice} (₽)',
                   hintText: '${AppLocalizations.of(context)!.totalPrice} (₽)',
-                  prefixIcon: Icon(Icons.currency_ruble),
+                  prefixIcon: const Icon(Icons.currency_ruble),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -433,7 +433,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                   labelText:
                       '${AppLocalizations.of(context)!.notes} (${AppLocalizations.of(context)!.optional})',
                   hintText: AppLocalizations.of(context)!.notes,
-                  prefixIcon: Icon(Icons.note),
+                  prefixIcon: const Icon(Icons.note),
                 ),
                 maxLines: 3,
               ),
