@@ -9,12 +9,10 @@ String orderStatusText(BuildContext context, OrderStatus status) {
       return _manualStatus(context, en: 'Processing payment', ru: 'Оплата обрабатывается');
     case OrderStatus.paid:
       return _manualStatus(context, en: 'Paid', ru: 'Оплачен');
-    case OrderStatus.pending:
-      return l.orderStatusPending;
-    case OrderStatus.accepted:
-      return l.orderStatusAccepted;
-    case OrderStatus.onTheWay:
-      return l.orderStatusOnTheWay;
+    case OrderStatus.assigned:
+      return l.orderStatusAssigned;
+    case OrderStatus.inProgress:
+      return l.orderStatusInProgress;
     case OrderStatus.completed:
       return l.orderStatusCompleted;
     case OrderStatus.cancelled:

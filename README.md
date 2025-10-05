@@ -43,7 +43,7 @@ Firestore Data Model (suggested)
 - users/{uid}
   - uid, role: 'customer'|'provider', displayName, companyName, truckPhotoUrl, licenseInfo, rating, fcmToken
 - orders/{orderId}
-  - id, status: 'pending'|'accepted'|'onTheWay'|'completed', address, lat, lng, scheduledAt, volumeLiters, photoUrls[], notes, customerId, providerId, createdAt, updatedAt
+  - id, status: 'processing'|'paid'|'assigned'|'in_progress'|'completed'|'cancelled', address, lat, lng, scheduledAt, volumeLiters, photoUrls[], notes, customerId, providerId, createdAt, updatedAt
 - chats/{orderId}/messages/{messageId}
   - senderId, text, createdAt
 

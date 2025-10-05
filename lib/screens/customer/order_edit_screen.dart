@@ -18,8 +18,8 @@ class OrderEditScreen extends StatefulWidget {
 
 class _OrderEditScreenState extends State<OrderEditScreen> {
   static const List<Map<String, dynamic>> _paymentOptions = [
-    {'value': 'card', 'icon': Icons.credit_card},
     {'value': 'cash', 'icon': Icons.attach_money},
+    {'value': 'card_to_driver', 'icon': Icons.credit_card},
   ];
 
   final _formKey = GlobalKey<FormState>();
@@ -69,18 +69,16 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
     return method;
   }
 
-  String _cardPaymentLabel(BuildContext context) {
-    final locale = Localizations.localeOf(context).languageCode;
-    return locale == 'ru'
-        ? 'Оплата картой онлайн'
-        : 'Online card payment';
-  }
-
-  String _serviceFeeNote(BuildContext context) {
-    final locale = Localizations.localeOf(context).languageCode;
-    return locale == 'ru'
-        ? 'Сервисный сбор 10 % включён в итоговую стоимость.'
-        : 'A 10% service fee is included in the total price.';
+  String _paymentMethodLabel(BuildContext context, String value) {
+    final l = AppLocalizations.of(context)!;
+    switch (value) {
+      case 'cash':
+        return l.paymentMethodCashToDriver;
+      case 'card_to_driver':
+        return l.paymentMethodCardToDriver;
+      default:
+        return value;
+    }
   }
 
   Future<void> _selectDate() async {
@@ -429,16 +427,15 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
                 items: _paymentOptions.map((option) {
                   final value = option['value'] as String;
                   final icon = option['icon'] as IconData;
-                  final label = value == 'card'
-                      ? _cardPaymentLabel(context)
-                      : AppLocalizations.of(context)!.cashPayment;
+                  final label = _paymentMethodLabel(context, value);
                   return DropdownMenuItem(
                     value: value,
                     child: Row(
                       children: [
                         Icon(icon,
-                            color:
-                                value == 'card' ? Colors.blue : Colors.green),
+                            color: value == 'card_to_driver'
+                                ? Colors.blue
+                                : Colors.green),
                         const SizedBox(width: 8),
                         Text(label),
                       ],
@@ -463,7 +460,7 @@ class _OrderEditScreenState extends State<OrderEditScreen> {
               if (_selectedPaymentMethod != null) ...[
                 const SizedBox(height: 8),
                 Text(
-                  _serviceFeeNote(context),
+                  AppLocalizations.of(context)!.paymentMethodNote,
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall

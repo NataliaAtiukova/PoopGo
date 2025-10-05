@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ServiceFeeNotice extends StatelessWidget {
   final VoidCallback onTap;
@@ -21,11 +22,13 @@ class ServiceFeeNotice extends StatelessWidget {
       fontWeight: FontWeight.w600,
     );
 
+    final l = AppLocalizations.of(context)!;
+
     final content = Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text(
-          'Сервисный сбор составляет 10% за размещение заказа. ',
+          '${l.paymentMethodNote} ',
           style: infoStyle,
         ),
         GestureDetector(

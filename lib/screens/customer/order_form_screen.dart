@@ -13,6 +13,7 @@ import '../../models/order.dart';
 import '../../routes.dart';
 import '../../widgets/image_picker_row.dart';
 import '../../widgets/map_preview.dart';
+import '../../utils/order_status_display.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OrderFormScreen extends StatefulWidget {
@@ -114,9 +115,11 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
         serviceFee: serviceFee,
         total: total,
         isPaid: false,
-        paymentMethod: 'card',
+        paymentMethod: 'cash',
         serviceFeePaid: false,
         orderId: orderNumber,
+        displayStatus:
+            displayStatusFromRaw(OrderStatus.processing.firestoreValue),
       );
       await fs.createOrder(order);
       await LocalOrderStore.instance.saveOrder(order);
@@ -124,10 +127,12 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
         'amount': basePrice,
         'serviceFee': serviceFee,
         'total': total,
-        'paymentMethod': 'card',
+        'paymentMethod': 'cash',
         'isPaid': false,
         'serviceFeePaid': false,
-        'status': 'processing',
+        'status': OrderStatus.processing.firestoreValue,
+        'displayStatus':
+            displayStatusFromRaw(OrderStatus.processing.firestoreValue),
         'updatedAt': FieldValue.serverTimestamp(),
       });
       if (!mounted) return;

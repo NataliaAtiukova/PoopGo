@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../models/order.dart';
+import '../../utils/order_status_display.dart';
+
 /// Экран оплаты через WebView. Загружает платёжную страницу и отслеживает
 /// редиректы для определения успешной либо неуспешной оплаты.
 class PaymentScreen extends StatefulWidget {
@@ -46,10 +49,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
             .collection('orders')
             .doc(widget.orderId)
             .update({
-          'status': 'paid',
+          'status': OrderStatus.paid.firestoreValue,
           'isPaid': true,
           'serviceFeePaid': true,
           'paidAt': FieldValue.serverTimestamp(),
+          'displayStatus':
+              displayStatusFromRaw(OrderStatus.paid.firestoreValue),
         });
       } catch (e) {
         if (mounted) {
@@ -76,6 +81,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             .doc(widget.orderId)
             .update({
           'status': 'failed',
+          'displayStatus': displayStatusFromRaw('failed'),
         });
       } catch (e) {
         if (mounted) {
@@ -97,15 +103,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Future<void> _markProcessing() async {
     try {
-      await FirebaseFirestore.instance
-          .collection('orders')
-          .doc(widget.orderId)
-          .update({
-        'status': 'processing',
-        'isPaid': false,
-        'serviceFeePaid': false,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+        await FirebaseFirestore.instance
+            .collection('orders')
+            .doc(widget.orderId)
+            .update({
+          'status': OrderStatus.processing.firestoreValue,
+          'isPaid': false,
+          'serviceFeePaid': false,
+          'displayStatus':
+              displayStatusFromRaw(OrderStatus.processing.firestoreValue),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

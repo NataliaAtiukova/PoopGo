@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'payment_screen.dart';
 
@@ -26,34 +27,13 @@ class PaymentInfoScreen extends StatelessWidget {
             return const Center(child: Text('Заказ не найден'));
           }
           final data = snapshot.data!.data()!;
-          final paymentMethod = (data['paymentMethod'] as String?) ?? 'card';
-          final total = (data['total'] is num)
-              ? (data['total'] as num).toDouble()
+          final serviceFee = (data['serviceFee'] is num)
+              ? (data['serviceFee'] as num).toDouble()
               : 0.0;
-
-          if (paymentMethod == 'cash') {
-            return Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _InfoRow(
-                    label: _localized(context, ru: 'Номер заказа', en: 'Order ID'),
-                    value: orderId,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _localized(
-                      context,
-                      ru: 'Оплата сервисного сбора будет произведена при расчёте с исполнителем.',
-                      en: 'The service fee will be paid directly to the driver upon completion.',
-                    ),
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-            );
-          }
+          final price = (data['price'] is num)
+              ? (data['price'] as num).toDouble()
+              : 0.0;
+          final l = AppLocalizations.of(context)!;
 
           return Padding(
             padding: const EdgeInsets.all(24),
@@ -67,16 +47,16 @@ class PaymentInfoScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 _InfoRow(
                   label: _localized(context,
-                      ru: 'Итоговая сумма с комиссией',
-                      en: 'Total amount with service fee'),
-                  value: '${total.toStringAsFixed(2)} ₽',
+                      ru: 'Сервисный сбор (10%)', en: 'Service fee (10%)'),
+                  value: '${serviceFee.toStringAsFixed(2)} ₽',
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  _localized(context,
-                      ru: 'Сервисный сбор 10 % включён.',
-                      en: 'A 10% service fee is included.'),
-                  style: const TextStyle(fontSize: 16),
+                  l.paymentInfoServiceFeeMessage(
+                    serviceFee.toStringAsFixed(2),
+                    price.toStringAsFixed(2),
+                  ),
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const Spacer(),
                 SizedBox(
@@ -91,10 +71,7 @@ class PaymentInfoScreen extends StatelessWidget {
                       );
                     },
                     icon: const Icon(Icons.payment),
-                    label: Text(
-                      _localized(context,
-                          ru: 'Перейти к оплате', en: 'Proceed to payment'),
-                    ),
+                    label: Text(l.proceedToServiceFeePayment),
                   ),
                 ),
               ],

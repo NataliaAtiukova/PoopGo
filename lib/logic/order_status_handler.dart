@@ -8,20 +8,19 @@ class OrderStatusHandler {
     const Map<OrderStatus, Set<OrderStatus>> allowed = {
       OrderStatus.processing: <OrderStatus>{
         OrderStatus.paid,
-        OrderStatus.pending,
+        OrderStatus.cancelled,
       },
       OrderStatus.paid: <OrderStatus>{
-        OrderStatus.accepted,
-        OrderStatus.pending,
+        OrderStatus.assigned,
+        OrderStatus.cancelled,
       },
-      OrderStatus.pending: <OrderStatus>{
-        OrderStatus.accepted,
+      OrderStatus.assigned: <OrderStatus>{
+        OrderStatus.inProgress,
+        OrderStatus.cancelled,
       },
-      OrderStatus.accepted: <OrderStatus>{
-        OrderStatus.onTheWay,
-      },
-      OrderStatus.onTheWay: <OrderStatus>{
+      OrderStatus.inProgress: <OrderStatus>{
         OrderStatus.completed,
+        OrderStatus.cancelled,
       },
       OrderStatus.completed: <OrderStatus>{},
       OrderStatus.cancelled: <OrderStatus>{},
@@ -40,12 +39,12 @@ class OrderStatusHandler {
     if (current == null) {
       throw StateError('Order not found');
     }
-    if (!canTransition(current.status, OrderStatus.accepted)) {
-      throw StateError('Invalid transition to Accepted');
+    if (!canTransition(current.status, OrderStatus.assigned)) {
+      throw StateError('Invalid transition to Assigned');
     }
     await FirebaseService.updateOrderStatus(
       orderId,
-      OrderStatus.accepted,
+      OrderStatus.assigned,
       providerId: providerId,
     );
   }
@@ -56,10 +55,10 @@ class OrderStatusHandler {
   }) async {
     final current = await FirebaseService.getOrderById(orderId);
     if (current == null) throw StateError('Order not found');
-    if (!canTransition(current.status, OrderStatus.onTheWay)) {
-      throw StateError('Must be Accepted before OnTheWay');
+    if (!canTransition(current.status, OrderStatus.inProgress)) {
+      throw StateError('Must be Assigned before InProgress');
     }
-    await FirebaseService.updateOrderStatus(orderId, OrderStatus.onTheWay);
+    await FirebaseService.updateOrderStatus(orderId, OrderStatus.inProgress);
   }
 
   /// Provider marks job as done. Requires OnTheWay first.
@@ -69,7 +68,7 @@ class OrderStatusHandler {
     final current = await FirebaseService.getOrderById(orderId);
     if (current == null) throw StateError('Order not found');
     if (!canTransition(current.status, OrderStatus.completed)) {
-      throw StateError('Must be OnTheWay before Completed');
+      throw StateError('Must be InProgress before Completed');
     }
     await FirebaseService.updateOrderStatus(orderId, OrderStatus.completed);
   }

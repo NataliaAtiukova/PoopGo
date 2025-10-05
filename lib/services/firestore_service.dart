@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import '../models/user_profile.dart';
 import '../models/order.dart';
+import '../utils/order_status_display.dart';
 
 class FirestoreService {
   final _db = FirebaseFirestore.instance;
@@ -27,7 +28,7 @@ class FirestoreService {
       .map((q) => q.docs.map((d) => Order.fromMap(d.data() as Map<String, dynamic>)).toList());
 
   Stream<List<Order>> streamOpenOrders() => orders
-      .where('status', isEqualTo: OrderStatus.paid.name)
+      .where('status', isEqualTo: OrderStatus.paid.firestoreValue)
       .where('isPaid', isEqualTo: true)
       .orderBy('createdAt', descending: true)
       .snapshots()
@@ -46,14 +47,17 @@ class FirestoreService {
   Future<void> acceptOrder({required String orderId, required String providerId}) async {
     await orders.doc(orderId).update({
       'providerId': providerId,
-      'status': OrderStatus.accepted.name,
+      'status': OrderStatus.assigned.firestoreValue,
+      'displayStatus':
+          displayStatusFromRaw(OrderStatus.assigned.firestoreValue),
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
   Future<void> updateOrderStatus(String orderId, OrderStatus status) async {
     await orders.doc(orderId).update({
-      'status': status.name,
+      'status': status.firestoreValue,
+      'displayStatus': displayStatusFromRaw(status.firestoreValue),
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }

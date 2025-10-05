@@ -8,6 +8,7 @@ import '../../models/order.dart';
 import '../../services/firebase_service.dart';
 import '../../services/local_order_store.dart';
 import '../payment/payment_info_screen.dart';
+import '../../utils/order_status_display.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class BookingFormScreen extends StatefulWidget {
@@ -19,8 +20,8 @@ class BookingFormScreen extends StatefulWidget {
 
 class _BookingFormScreenState extends State<BookingFormScreen> {
   static const List<Map<String, dynamic>> _paymentOptions = [
-    {'value': 'card', 'icon': Icons.credit_card},
     {'value': 'cash', 'icon': Icons.attach_money},
+    {'value': 'card_to_driver', 'icon': Icons.credit_card},
   ];
 
   final _formKey = GlobalKey<FormState>();
@@ -33,7 +34,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
   final List<XFile> _selectedImages = [];
   bool _isLoading = false;
-  String? _selectedPaymentMethod = 'card';
+  String? _selectedPaymentMethod = 'cash';
 
   @override
   void dispose() {
@@ -85,18 +86,16 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
     });
   }
 
-  String _cardPaymentLabel(BuildContext context) {
-    final locale = Localizations.localeOf(context).languageCode;
-    return locale == 'ru'
-        ? 'Оплата картой онлайн'
-        : 'Online card payment';
-  }
-
-  String _serviceFeeNote(BuildContext context) {
-    final locale = Localizations.localeOf(context).languageCode;
-    return locale == 'ru'
-        ? 'Сервисный сбор 10 % включён в итоговую стоимость.'
-        : 'A 10% service fee is included in the total price.';
+  String _paymentMethodLabel(BuildContext context, String value) {
+    final l = AppLocalizations.of(context)!;
+    switch (value) {
+      case 'cash':
+        return l.paymentMethodCashToDriver;
+      case 'card_to_driver':
+        return l.paymentMethodCardToDriver;
+      default:
+        return value;
+    }
   }
 
   Future<void> _submitOrder() async {
@@ -126,7 +125,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
             await FirebaseService.uploadMultipleImages(_selectedImages, docId);
       }
 
-      final paymentMethod = _selectedPaymentMethod ?? 'card';
+      final paymentMethod = _selectedPaymentMethod ?? 'cash';
       final amount = double.parse(_priceController.text);
       final serviceFee = double.parse((amount * 0.10).toStringAsFixed(2));
       final totalWithFee =
@@ -151,7 +150,10 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         total: totalWithFee,
         isPaid: false,
         paymentMethod: paymentMethod,
+        serviceFeePaid: false,
         orderId: orderNumber,
+        displayStatus:
+            displayStatusFromRaw(OrderStatus.processing.firestoreValue),
       );
 
       final createdId = await FirebaseService.createOrder(order);
@@ -166,38 +168,21 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         'paymentMethod': paymentMethod,
         'isPaid': false,
         'serviceFeePaid': false,
-        'status': 'processing',
+        'status': OrderStatus.processing.firestoreValue,
+        'displayStatus':
+            displayStatusFromRaw(OrderStatus.processing.firestoreValue),
         'updatedAt': FieldValue.serverTimestamp(),
       });
       await LocalOrderStore.instance.saveOrder(order.copyWith(id: createdId));
 
       if (!mounted) return;
 
-      if (paymentMethod == 'card') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PaymentInfoScreen(orderId: createdId),
-          ),
-        );
-      } else {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(AppLocalizations.of(context)!.success),
-            content: Text(AppLocalizations.of(context)!.orderSubmittedMessage),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                child: Text(AppLocalizations.of(context)!.ok),
-              ),
-            ],
-          ),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PaymentInfoScreen(orderId: createdId),
+        ),
+      );
     } catch (e) {
       if (mounted) {
         showDialog(
@@ -382,16 +367,15 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                 items: _paymentOptions.map((option) {
                   final value = option['value'] as String;
                   final icon = option['icon'] as IconData;
-                  final label = value == 'card'
-                      ? _cardPaymentLabel(context)
-                      : AppLocalizations.of(context)!.cashPayment;
+                  final label = _paymentMethodLabel(context, value);
                   return DropdownMenuItem(
                     value: value,
                     child: Row(
                       children: [
                         Icon(icon,
-                            color:
-                                value == 'card' ? Colors.blue : Colors.green),
+                            color: value == 'card_to_driver'
+                                ? Colors.blue
+                                : Colors.green),
                         const SizedBox(width: 8),
                         Text(label),
                       ],
@@ -414,7 +398,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               if (_selectedPaymentMethod != null) ...[
                 const SizedBox(height: 8),
                 Text(
-                  _serviceFeeNote(context),
+                  AppLocalizations.of(context)!.paymentMethodNote,
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall

@@ -9,7 +9,7 @@ import '../../widgets/price_display.dart';
 import 'booking_form_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'order_status_screen.dart';
-import '../../utils/l10n.dart';
+import '../../utils/order_status_display.dart';
 import '../shared/profile_settings_screen.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
@@ -357,7 +357,7 @@ class _HomeTab extends StatelessWidget {
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  orderStatusText(context, order.status),
+                  customerStatusLabel(context, order.status),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   softWrap: false,
@@ -379,12 +379,10 @@ class _HomeTab extends StatelessWidget {
       case OrderStatus.processing:
         return Colors.orange;
       case OrderStatus.paid:
-        return Colors.green;
-      case OrderStatus.pending:
-        return Colors.orange;
-      case OrderStatus.accepted:
+        return Colors.teal;
+      case OrderStatus.assigned:
         return Colors.blue;
-      case OrderStatus.onTheWay:
+      case OrderStatus.inProgress:
         return Colors.purple;
       case OrderStatus.completed:
         return Colors.green;
@@ -503,7 +501,7 @@ class _OrdersTab extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    orderStatusText(context, order.status),
+                    customerStatusLabel(context, order.status),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: _getStatusColor(order.status),
                           fontWeight: FontWeight.w600,
@@ -548,12 +546,10 @@ class _OrdersTab extends StatelessWidget {
       case OrderStatus.processing:
         return Colors.orange;
       case OrderStatus.paid:
-        return Colors.green;
-      case OrderStatus.pending:
-        return Colors.orange;
-      case OrderStatus.accepted:
+        return Colors.teal;
+      case OrderStatus.assigned:
         return Colors.blue;
-      case OrderStatus.onTheWay:
+      case OrderStatus.inProgress:
         return Colors.purple;
       case OrderStatus.completed:
         return Colors.green;

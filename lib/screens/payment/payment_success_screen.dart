@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../../models/order.dart';
+import '../../utils/order_status_display.dart';
 import '../customer/order_status_screen.dart';
 
 class PaymentSuccessScreen extends StatefulWidget {
@@ -26,9 +28,10 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
       await FirebaseFirestore.instance.collection('orders').doc(widget.orderId).update({
         'isPaid': true,
         'serviceFeePaid': true,
-        'status': 'paid',
+        'status': OrderStatus.paid.firestoreValue,
         'paidAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
+        'displayStatus':
+            displayStatusFromRaw(OrderStatus.paid.firestoreValue),
       });
       if (!mounted) return;
       setState(() {

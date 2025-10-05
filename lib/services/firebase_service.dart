@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/order.dart' as app_models;
 import '../models/user_profile.dart';
+import '../utils/order_status_display.dart';
 
 class FirebaseService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -48,15 +49,30 @@ class FirebaseService {
   }
 
   static Future<void> updateOrderStatus(String orderId, app_models.OrderStatus status, {String? providerId}) async {
-    final updateData = {
-      'status': status.name,
+    final updateData = <String, dynamic>{
+      'status': status.firestoreValue,
       'updatedAt': FieldValue.serverTimestamp(),
+      'displayStatus': displayStatusFromRaw(status.firestoreValue),
     };
-    
-    if (providerId != null) {
-      updateData['providerId'] = providerId;
+
+    switch (status) {
+      case app_models.OrderStatus.assigned:
+        if (providerId == null) {
+          throw ArgumentError('providerId is required when assigning an order');
+        }
+        updateData['providerId'] = providerId;
+        break;
+      case app_models.OrderStatus.inProgress:
+        updateData['startedAt'] = FieldValue.serverTimestamp();
+        break;
+      case app_models.OrderStatus.completed:
+        updateData['completedAt'] = FieldValue.serverTimestamp();
+        break;
+      default:
+        if (providerId != null) updateData['providerId'] = providerId;
+        break;
     }
-    
+
     await _firestore.collection('orders').doc(orderId).update(updateData);
   }
 
@@ -82,7 +98,7 @@ class FirebaseService {
   static Stream<List<app_models.Order>> getPendingOrders() {
     return _firestore
         .collection('orders')
-        .where('status', isEqualTo: app_models.OrderStatus.paid.name)
+        .where('status', isEqualTo: app_models.OrderStatus.paid.firestoreValue)
         .where('isPaid', isEqualTo: true)
         .snapshots()
         .map((snapshot) {
@@ -114,7 +130,7 @@ class FirebaseService {
     return _firestore
         .collection('orders')
         .where('providerId', isEqualTo: providerId)
-        .where('status', isEqualTo: app_models.OrderStatus.completed.name)
+        .where('status', isEqualTo: app_models.OrderStatus.completed.firestoreValue)
         .snapshots()
         .map((snapshot) {
           final orders = snapshot.docs
@@ -130,10 +146,8 @@ class FirebaseService {
         .collection('orders')
         .where('providerId', isEqualTo: providerId)
         .where('status', whereIn: [
-          app_models.OrderStatus.paid.name,
-          app_models.OrderStatus.pending.name,
-          app_models.OrderStatus.accepted.name,
-          app_models.OrderStatus.onTheWay.name,
+          app_models.OrderStatus.assigned.firestoreValue,
+          app_models.OrderStatus.inProgress.firestoreValue,
         ])
         .snapshots()
         .map((snapshot) {

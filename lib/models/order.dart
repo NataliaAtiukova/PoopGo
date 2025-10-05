@@ -1,30 +1,43 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum OrderStatus {
-  processing,
-  paid,
-  pending,
-  accepted,
-  onTheWay,
-  completed,
-  cancelled;
+  processing('processing', 'Processing'),
+  paid('paid', 'Paid'),
+  assigned('assigned', 'Assigned'),
+  inProgress('in_progress', 'In progress'),
+  completed('completed', 'Completed'),
+  cancelled('cancelled', 'Cancelled');
 
-  String get displayName {
-    switch (this) {
-      case OrderStatus.processing:
-        return 'Processing';
-      case OrderStatus.paid:
-        return 'Paid';
-      case OrderStatus.pending:
-        return 'Pending';
-      case OrderStatus.accepted:
-        return 'Accepted';
-      case OrderStatus.onTheWay:
-        return 'On the way';
-      case OrderStatus.completed:
-        return 'Completed';
-      case OrderStatus.cancelled:
-        return 'Cancelled';
+  const OrderStatus(this.firestoreValue, this.displayName);
+
+  final String firestoreValue;
+  final String displayName;
+
+  static OrderStatus fromRaw(dynamic raw) {
+    final value = raw?.toString().toLowerCase();
+    switch (value) {
+      case 'processing':
+        return OrderStatus.processing;
+      case 'paid':
+        return OrderStatus.paid;
+      case 'assigned':
+        return OrderStatus.assigned;
+      case 'in_progress':
+      case 'inprogress':
+      case 'ontheway':
+        return OrderStatus.inProgress;
+      case 'completed':
+        return OrderStatus.completed;
+      case 'cancelled':
+        return OrderStatus.cancelled;
+      case 'failed':
+        return OrderStatus.cancelled;
+      case 'accepted':
+        return OrderStatus.assigned;
+      case 'pending':
+        return OrderStatus.processing;
+      default:
+        return OrderStatus.processing;
     }
   }
 }
@@ -43,6 +56,9 @@ class Order {
   final List<String> imageUrls;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final DateTime? paidAt;
+  final DateTime? startedAt;
+  final DateTime? completedAt;
   final double price; // base price (without service fee)
   final double serviceFee; // calculated 10% fee
   final double total; // price + serviceFee
@@ -50,6 +66,7 @@ class Order {
   final String? paymentMethod; // payment method selected by customer
   final bool serviceFeePaid; // service commission paid by customer
   final String orderId; // external payment reference
+  final String? displayStatus;
 
   Order({
     required this.id,
@@ -65,6 +82,9 @@ class Order {
     this.imageUrls = const [],
     required this.createdAt,
     this.updatedAt,
+    this.paidAt,
+    this.startedAt,
+    this.completedAt,
     required this.price,
     required this.serviceFee,
     required this.total,
@@ -72,6 +92,7 @@ class Order {
     this.paymentMethod,
     this.serviceFeePaid = false,
     required this.orderId,
+    this.displayStatus,
   });
 
   Map<String, dynamic> toMap() {
@@ -84,12 +105,15 @@ class Order {
       'latitude': latitude,
       'longitude': longitude,
       'requestedDate': Timestamp.fromDate(requestedDate),
-      'status': status.name,
+      'status': status.firestoreValue,
       'notes': notes,
       'volume': volume,
       'imageUrls': imageUrls,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+      'paidAt': paidAt != null ? Timestamp.fromDate(paidAt!) : null,
+      'startedAt': startedAt != null ? Timestamp.fromDate(startedAt!) : null,
+      'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,
       'price': price,
       'serviceFee': serviceFee,
       'total': total,
@@ -97,6 +121,7 @@ class Order {
       'paymentMethod': paymentMethod,
       'serviceFeePaid': serviceFeePaid,
       'orderId': orderId,
+      'displayStatus': displayStatus,
     };
   }
 
@@ -141,16 +166,22 @@ class Order {
       latitude: map['latitude']?.toDouble() ?? 0.0,
       longitude: map['longitude']?.toDouble() ?? 0.0,
       requestedDate: (map['requestedDate'] as Timestamp).toDate(),
-      status: OrderStatus.values.firstWhere(
-        (e) => e.name == map['status'],
-        orElse: () => _resolveStatus(map['status']),
-      ),
+      status: OrderStatus.fromRaw(map['status']),
       notes: map['notes'],
       volume: map['volume']?.toDouble() ?? 0.0,
       imageUrls: List<String>.from(map['imageUrls'] ?? []),
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       updatedAt: map['updatedAt'] != null
           ? (map['updatedAt'] as Timestamp).toDate()
+          : null,
+      paidAt: map['paidAt'] is Timestamp
+          ? (map['paidAt'] as Timestamp).toDate()
+          : null,
+      startedAt: map['startedAt'] is Timestamp
+          ? (map['startedAt'] as Timestamp).toDate()
+          : null,
+      completedAt: map['completedAt'] is Timestamp
+          ? (map['completedAt'] as Timestamp).toDate()
           : null,
       price: basePrice,
       serviceFee: fee,
@@ -159,27 +190,8 @@ class Order {
       paymentMethod: map['paymentMethod'],
       serviceFeePaid: map['serviceFeePaid'] ?? false,
       orderId: resolveOrderId(),
+      displayStatus: map['displayStatus'] as String?,
     );
-  }
-
-  static OrderStatus _resolveStatus(dynamic statusValue) {
-    final value = statusValue?.toString().toLowerCase() ?? '';
-    switch (value) {
-      case 'processing':
-        return OrderStatus.processing;
-      case 'paid':
-        return OrderStatus.paid;
-      case 'accepted':
-        return OrderStatus.accepted;
-      case 'ontheway':
-        return OrderStatus.onTheWay;
-      case 'completed':
-        return OrderStatus.completed;
-      case 'cancelled':
-        return OrderStatus.cancelled;
-      default:
-        return OrderStatus.pending;
-    }
   }
 
   Order copyWith({
@@ -196,6 +208,9 @@ class Order {
     List<String>? imageUrls,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? paidAt,
+    DateTime? startedAt,
+    DateTime? completedAt,
     double? price,
     double? serviceFee,
     double? total,
@@ -203,6 +218,7 @@ class Order {
     String? paymentMethod,
     bool? serviceFeePaid,
     String? orderId,
+    String? displayStatus,
   }) {
     return Order(
       id: id ?? this.id,
@@ -218,6 +234,9 @@ class Order {
       imageUrls: imageUrls ?? this.imageUrls,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      paidAt: paidAt ?? this.paidAt,
+      startedAt: startedAt ?? this.startedAt,
+      completedAt: completedAt ?? this.completedAt,
       price: price ?? this.price,
       serviceFee: serviceFee ?? this.serviceFee,
       total: total ?? this.total,
@@ -225,9 +244,10 @@ class Order {
       paymentMethod: paymentMethod ?? this.paymentMethod,
       serviceFeePaid: serviceFeePaid ?? this.serviceFeePaid,
       orderId: orderId ?? this.orderId,
+      displayStatus: displayStatus ?? this.displayStatus,
     );
   }
 
   // Helper method to check if order is editable
-  bool get isEditable => status == OrderStatus.pending;
+  bool get isEditable => status == OrderStatus.processing;
 }

@@ -217,12 +217,15 @@ class _AvailableJobsTab extends StatelessWidget {
   }
 
   Future<void> _acceptOrder(BuildContext context, Order order) async {
-    final agreed = await showProviderAgreementDialog(context);
+    final agreed = await showProviderAgreementDialog(
+      context,
+      driverAmount: order.price,
+    );
     if (!agreed) return;
     try {
       await FirebaseService.updateOrderStatus(
         order.id,
-        OrderStatus.accepted,
+        OrderStatus.assigned,
         providerId: FirebaseAuth.instance.currentUser!.uid,
       );
 
@@ -441,7 +444,8 @@ class _MyJobsTab extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: () {
                         final canChat = order.serviceFeePaid &&
-                            (order.status == OrderStatus.onTheWay ||
+                            (order.status == OrderStatus.assigned ||
+                                order.status == OrderStatus.inProgress ||
                                 order.status == OrderStatus.completed);
                         if (!canChat) {
                           showDialog(
@@ -467,16 +471,16 @@ class _MyJobsTab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  if (order.status == OrderStatus.accepted)
+                  if (order.status == OrderStatus.assigned)
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () =>
-                            _updateStatus(context, order, OrderStatus.onTheWay),
+                            _updateStatus(context, order, OrderStatus.inProgress),
                         icon: const Icon(Icons.local_shipping),
                         label: Text(AppLocalizations.of(context)!.start),
                       ),
                     ),
-                  if (order.status == OrderStatus.onTheWay)
+                  if (order.status == OrderStatus.inProgress)
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () => _updateStatus(
@@ -504,8 +508,8 @@ class _MyJobsTab extends StatelessWidget {
       final l = AppLocalizations.of(context)!;
 
       // Enforce linear flow and commission requirement
-      if (newStatus == OrderStatus.onTheWay) {
-        if (current.status != OrderStatus.accepted) {
+      if (newStatus == OrderStatus.inProgress) {
+        if (current.status != OrderStatus.assigned) {
           await _showAlert(
             context,
             l.invalidStatus,
@@ -523,7 +527,7 @@ class _MyJobsTab extends StatelessWidget {
         }
       }
       if (newStatus == OrderStatus.completed) {
-        if (current.status != OrderStatus.onTheWay) {
+        if (current.status != OrderStatus.inProgress) {
           await _showAlert(
             context,
             l.invalidStatus,
@@ -541,7 +545,7 @@ class _MyJobsTab extends StatelessWidget {
       String? body;
 
       switch (newStatus) {
-        case OrderStatus.onTheWay:
+        case OrderStatus.inProgress:
           title = l.notifOnTheWayTitle;
           body = l.notifOnTheWayBody;
           break;
@@ -550,7 +554,8 @@ class _MyJobsTab extends StatelessWidget {
           body = l.notifCompletedBody;
           break;
         default:
-          break;
+          title = null;
+          body = null;
       }
 
       if (title != null && body != null) {
@@ -777,12 +782,10 @@ class _MyJobsTab extends StatelessWidget {
       case OrderStatus.processing:
         return Colors.orange;
       case OrderStatus.paid:
-        return Colors.green;
-      case OrderStatus.pending:
-        return Colors.orange;
-      case OrderStatus.accepted:
+        return Colors.teal;
+      case OrderStatus.assigned:
         return Colors.blue;
-      case OrderStatus.onTheWay:
+      case OrderStatus.inProgress:
         return Colors.purple;
       case OrderStatus.completed:
         return Colors.green;

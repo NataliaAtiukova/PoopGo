@@ -47,7 +47,10 @@ class OpenRequestsScreen extends StatelessWidget {
                       children: [
                         TextButton(
                           onPressed: () async {
-                            final agreed = await showProviderAgreementDialog(context);
+                            final agreed = await showProviderAgreementDialog(
+                              context,
+                              driverAmount: order.price,
+                            );
                             if (!agreed) return;
                             try {
                               await firestore.acceptOrder(orderId: order.id, providerId: auth.currentUser!.uid);

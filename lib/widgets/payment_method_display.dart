@@ -85,7 +85,7 @@ class PaymentMethodDisplay extends StatelessWidget {
           icon: Icons.money,
           color: Colors.green,
         );
-      case 'card':
+      case 'card_to_driver':
         return PaymentMethodData(
           icon: Icons.credit_card,
           color: Colors.blue,
@@ -108,9 +108,9 @@ class PaymentMethodDisplay extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     switch (method.toLowerCase()) {
       case 'cash':
-        return l.cashPayment;
-      case 'card':
-        return _cardPaymentLabel(context);
+        return l.paymentMethodCashToDriver;
+      case 'card_to_driver':
+        return l.paymentMethodCardToDriver;
       case 'bank transfer':
         return l.bankTransfer;
       case 'card on completion':
@@ -118,13 +118,6 @@ class PaymentMethodDisplay extends StatelessWidget {
       default:
         return method;
     }
-  }
-
-  String _cardPaymentLabel(BuildContext context) {
-    final locale = Localizations.localeOf(context).languageCode;
-    return locale == 'ru'
-        ? 'Оплата картой онлайн'
-        : 'Online card payment';
   }
 }
 

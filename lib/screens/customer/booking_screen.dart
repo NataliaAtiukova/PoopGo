@@ -10,6 +10,7 @@ import '../../services/firebase_service.dart';
 import '../../services/local_order_store.dart';
 import '../payment/payment_info_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../utils/order_status_display.dart';
 
 /// BookingScreen: lightweight wrapper around order creation with enforced Pending status.
 class BookingScreen extends StatefulWidget {
@@ -61,7 +62,7 @@ class _BookingScreenState extends State<BookingScreen> {
         imageUrls = await FirebaseService.uploadMultipleImages(_images, docId);
       }
 
-      const paymentMethod = 'card'; // legacy screen defaults to card
+      const paymentMethod = 'cash'; // default payout method for driver
       final amount = double.parse(_price.text);
       final serviceFee = double.parse((amount * 0.10).toStringAsFixed(2));
       final totalWithFee =
@@ -87,6 +88,8 @@ class _BookingScreenState extends State<BookingScreen> {
         paymentMethod: paymentMethod,
         serviceFeePaid: false,
         orderId: orderNumber,
+        displayStatus:
+            displayStatusFromRaw(OrderStatus.processing.firestoreValue),
       );
 
       final createdId = await FirebaseService.createOrder(order);
@@ -98,7 +101,9 @@ class _BookingScreenState extends State<BookingScreen> {
         'paymentMethod': paymentMethod,
         'isPaid': false,
         'serviceFeePaid': false,
-        'status': 'processing',
+        'status': OrderStatus.processing.firestoreValue,
+        'displayStatus':
+            displayStatusFromRaw(OrderStatus.processing.firestoreValue),
         'updatedAt': FieldValue.serverTimestamp(),
       });
       if (!mounted) return;

@@ -6,7 +6,7 @@ import '../shared/chat_screen.dart';
 import 'order_edit_screen.dart';
 import '../../widgets/payment_method_display.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import '../../utils/l10n.dart';
+import '../../utils/order_status_display.dart';
 import '../../utils/format.dart' as fmt;
 import '../../widgets/service_fee_modal.dart';
 import '../payment/payment_info_screen.dart';
@@ -128,8 +128,18 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                         _buildStatusIndicator(),
                         const SizedBox(height: 16),
                         Text(
-                          orderStatusText(context, _order!.status),
-                          style: Theme.of(context).textTheme.headlineMedium,
+                          AppLocalizations.of(context)!.orderStatusTitle,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          customerStatusLabel(context, _order!.status),
+                          style: Theme.of(context).textTheme.headlineSmall,
+                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -252,8 +262,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   ),
                 ],
 
-                // Service Commission card (only at Accepted)
-                if (_order!.status == OrderStatus.accepted) ...[
+                // Service Commission card (only while awaiting payment)
+                if (_order!.status == OrderStatus.processing) ...[
                   const SizedBox(height: 24),
                   Text(
                     AppLocalizations.of(context)!.paymentSummary,
@@ -366,12 +376,10 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
       case OrderStatus.processing:
         return Colors.orange;
       case OrderStatus.paid:
-        return Colors.green;
-      case OrderStatus.pending:
-        return Colors.orange;
-      case OrderStatus.accepted:
+        return Colors.teal;
+      case OrderStatus.assigned:
         return Colors.blue;
-      case OrderStatus.onTheWay:
+      case OrderStatus.inProgress:
         return Colors.purple;
       case OrderStatus.completed:
         return Colors.green;
@@ -386,11 +394,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         return Icons.watch_later;
       case OrderStatus.paid:
         return Icons.verified_user;
-      case OrderStatus.pending:
-        return Icons.schedule;
-      case OrderStatus.accepted:
-        return Icons.check_circle;
-      case OrderStatus.onTheWay:
+      case OrderStatus.assigned:
+        return Icons.emoji_transportation;
+      case OrderStatus.inProgress:
         return Icons.local_shipping;
       case OrderStatus.completed:
         return Icons.done_all;
@@ -403,23 +409,17 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     final l = AppLocalizations.of(context)!;
     switch (status) {
       case OrderStatus.processing:
-        return _localizedText(context,
-            ru: 'Оплата ожидает подтверждения.',
-            en: 'Payment is pending confirmation.');
+        return l.statusMessageProcessing;
       case OrderStatus.paid:
-        return _localizedText(context,
-            ru: 'Заказ оплачен и доступен для исполнителей.',
-            en: 'The order is paid and visible to drivers.');
-      case OrderStatus.pending:
-        return l.statusDescPending;
-      case OrderStatus.accepted:
-        return l.statusDescAccepted;
-      case OrderStatus.onTheWay:
-        return l.statusDescOnTheWay;
+        return l.statusMessagePaid;
+      case OrderStatus.assigned:
+        return l.statusMessageAssigned;
+      case OrderStatus.inProgress:
+        return l.statusMessageInProgress;
       case OrderStatus.completed:
-        return l.statusDescCompleted;
+        return l.statusMessageCompleted;
       case OrderStatus.cancelled:
-        return l.statusDescCancelled;
+        return l.statusMessageCancelled;
     }
   }
 
@@ -693,10 +693,4 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
   // Payment dialog flows for test/manual payment were removed in favor of
   // unified Service Fee modal and CloudPayments flow.
-}
-
-String _localizedText(BuildContext context,
-    {required String ru, required String en}) {
-  final locale = Localizations.localeOf(context);
-  return locale.languageCode == 'ru' ? ru : en;
 }
